@@ -217,3 +217,31 @@ article [data-image-grid] img {
     animation: none;
   }
 }
+
+/* 사진 설명(캡션) */
+figure {
+  margin: 1.75rem 0;
+}
+figure img {
+  margin: 0 auto;
+  border-radius: 0.75rem;
+}
+figcaption {
+  margin-top: 0.6rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* 편집 중, 설명이 비어 있으면 어디에 쓰는지 알려줍니다. */
+.tiptap figcaption:empty::before {
+  content: "사진 설명을 쓰려면 여기를 누르세요 (선택)";
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.tiptap figure.ProseMirror-selectednode img {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

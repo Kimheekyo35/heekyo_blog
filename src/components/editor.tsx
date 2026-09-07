@@ -11,7 +11,21 @@ import StarterKit from '@tiptap/starter-kit'
 import { Placeholder } from '@tiptap/extensions'
 import Image from '@tiptap/extension-image'
 import { uploadImage, isImageFile } from '@/lib/upload-client'
+import { TextStyle, Color } from '@tiptap/extension-text-style'
 import { ImageGrid, GRID_LAYOUTS, DEFAULT_GRID_LAYOUT } from '@/lib/tiptap/image-grid'
+import { Figure } from '@/lib/tiptap/figure'
+
+// 글자색 팔레트. 본문에 쓸 만큼만 추립니다.
+const TEXT_COLORS = [
+  { value: '', label: '기본색', swatch: 'currentColor' },
+  { value: '#c2410c', label: '주황', swatch: '#c2410c' },
+  { value: '#dc2626', label: '빨강', swatch: '#dc2626' },
+  { value: '#ca8a04', label: '노랑', swatch: '#ca8a04' },
+  { value: '#15803d', label: '초록', swatch: '#15803d' },
+  { value: '#1d4ed8', label: '파랑', swatch: '#1d4ed8' },
+  { value: '#7c3aed', label: '보라', swatch: '#7c3aed' },
+  { value: '#78716c', label: '회색', swatch: '#78716c' },
+]
 
 /**
  * 커서가 사진 묶음 안(또는 묶음 자체를 선택한 상태)이면 그 묶음의 끝 위치를 돌려줍니다.
@@ -90,6 +104,7 @@ function Toolbar({
       imageSelected: e.isActive('image'),
       imageSrc: (e.getAttributes('image').src as string | undefined) ?? '',
       imageAlt: (e.getAttributes('image').alt as string | undefined) ?? '',
+      textColor: (e.getAttributes('textStyle').color as string | undefined) ?? '',
     }),
   })
 
@@ -212,6 +227,38 @@ function Toolbar({
 
       <span className="w-px h-5 bg-border mx-1" />
 
+      <div className="flex items-center gap-1" role="group" aria-label="글자색">
+        {TEXT_COLORS.map((color) => {
+          const selected = state.textColor === color.value
+          return (
+            <button
+              key={color.label}
+              type="button"
+              title={color.label}
+              aria-label={color.label}
+              aria-pressed={selected}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() =>
+                color.value
+                  ? chain().setColor(color.value).run()
+                  : chain().unsetColor().run()
+              }
+              className={`w-5 h-5 rounded-full border transition-transform hover:scale-110 ${
+                selected ? 'border-foreground scale-110' : 'border-border'
+              }`}
+              style={{
+                // 기본색 칸은 색을 칠하지 않고 비워 둡니다.
+                backgroundColor: color.value || 'transparent',
+              }}
+            >
+              {!color.value && <span className="text-[10px] leading-none">×</span>}
+            </button>
+          )
+        })}
+      </div>
+
+      <span className="w-px h-5 bg-border mx-1" />
+
       <ToolbarButton title="실행 취소" disabled={!state.canUndo} onClick={() => chain().undo().run()}>
         ↶
       </ToolbarButton>
@@ -264,7 +311,12 @@ export function Editor({
       }
 
       if (uploaded.length === 1) {
-        editor.chain().focus().setImage(uploaded[0]).run()
+        // 한 장일 때는 설명(캡션)을 쓸 수 있는 형태로 넣습니다.
+        editor
+          .chain()
+          .focus()
+          .insertContent({ type: 'figure', attrs: uploaded[0], content: [] })
+          .run()
         return
       }
 
@@ -291,6 +343,9 @@ export function Editor({
       Placeholder.configure({ placeholder: '무슨 이야기를 써볼까요?' }),
       Image.configure({ inline: false }),
       ImageGrid,
+      Figure,
+      TextStyle,
+      Color,
     ],
     content: initialContent ?? '',
     // 서버에서 미리 그려두면 화면이 어긋나므로 브라우저에서만 그립니다.
@@ -360,7 +415,7 @@ export function Editor({
       <p className="mt-2 text-xs text-muted">
         {uploading
           ? '사진 올리는 중…'
-          : '사진 여러 장을 고르려면 파일 창에서 Ctrl(맥은 ⌘)을 누른 채 클릭하세요. Shift로 범위 선택도 됩니다. 붙여넣기·끌어다 놓기도 가능합니다.'}
+          : '사진 여러 장은 파일 창에서 Ctrl(맥은 ⌘)을 누른 채 클릭하세요. 한 장만 넣으면 사진 아래에 설명을 쓸 수 있습니다.'}
       </p>
 
       {uploadError && (
