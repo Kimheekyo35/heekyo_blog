@@ -73,10 +73,6 @@ export function HeaderScene() {
           <stop offset="0%" stopColor={WILLOW.color} stopOpacity="0.28" />
           <stop offset="100%" stopColor={WILLOW.color} stopOpacity="0" />
         </radialGradient>
-        <linearGradient id="hdr-ground" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3b2360" stopOpacity="0" />
-          <stop offset="100%" stopColor="#4a2a72" stopOpacity="0.55" />
-        </linearGradient>
       </defs>
 
       {STARS.map(([x, y], i) => (
@@ -143,9 +139,6 @@ export function HeaderScene() {
           ))}
         </g>
       </g>
-
-      {/* 사람들이 앉은 자리. 바닥을 살짝 밝혀 사람들이 떠 보이게 합니다. */}
-      <path d="M0 82 Q 250 72 520 80 T 1000 74 L1000 104 L0 104 Z" fill="url(#hdr-ground)" />
 
       <g>
         {PEOPLE.map((person, i) => (
