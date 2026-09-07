@@ -167,3 +167,53 @@ article [data-image-grid] img {
   outline-offset: 4px;
   border-radius: 0.5rem;
 }
+
+/* 상단 배너: 폭죽과 별 */
+@keyframes banner-burst {
+  0% {
+    transform: scale(0.15);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  85%,
+  100% {
+    transform: scale(1.12);
+    opacity: 0;
+  }
+}
+
+@keyframes banner-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.banner-firework {
+  animation: banner-burst 4.2s ease-out infinite;
+  opacity: 0;
+}
+
+.banner-star {
+  animation: banner-twinkle 3.5s ease-in-out infinite;
+}
+
+/* 움직임을 불편해하는 사용자를 위해 정지 상태로 보여줍니다. */
+@media (prefers-reduced-motion: reduce) {
+  .banner-firework {
+    animation: none;
+    opacity: 0.9;
+  }
+  .banner-star {
+    animation: none;
+  }
+}
