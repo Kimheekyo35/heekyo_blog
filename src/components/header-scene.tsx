@@ -7,13 +7,30 @@ const BURSTS = [
   { cx: 815, cy: 38, r: 15, color: '#8ecae6', delay: '2.8s' },
 ]
 
-/** 중심에서 사방으로 뻗는 불꽃 줄기. */
+// 수양버들형 — 사방으로 퍼진 뒤 아래로 흘러내리는 불꽃. 위의 것들과 모양이 다릅니다.
+const WILLOW = { cx: 380, cy: 30, r: 14, color: '#c9f2b0', delay: '2.1s' }
+
+/** 중심에서 사방으로 곧게 뻗는 불꽃 줄기. */
 function rays(r: number, count = 14) {
   return Array.from({ length: count }, (_, i) => {
     const angle = (i / count) * Math.PI * 2
     const cos = Math.cos(angle)
     const sin = Math.sin(angle)
     return { x1: cos * r * 0.32, y1: sin * r * 0.32, x2: cos * r, y2: sin * r }
+  })
+}
+
+/** 퍼졌다가 중력에 끌려 아래로 처지는 궤적. */
+function willowTrails(r: number, count = 12) {
+  return Array.from({ length: count }, (_, i) => {
+    const angle = (i / count) * Math.PI * 2
+    const cos = Math.cos(angle)
+    const sin = Math.sin(angle)
+    const midX = cos * r * 0.62
+    const midY = sin * r * 0.62
+    const endX = cos * r * 0.95
+    const endY = sin * r * 0.95 + r * 0.6 // 아래로 흘러내림
+    return { d: `M0 0 Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${endX.toFixed(1)} ${endY.toFixed(1)}`, endX, endY }
   })
 }
 
@@ -52,6 +69,10 @@ export function HeaderScene() {
             <stop offset="100%" stopColor={b.color} stopOpacity="0" />
           </radialGradient>
         ))}
+        <radialGradient id="hdr-glow-willow">
+          <stop offset="0%" stopColor={WILLOW.color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={WILLOW.color} stopOpacity="0" />
+        </radialGradient>
         <linearGradient id="hdr-ground" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#3b2360" stopOpacity="0" />
           <stop offset="100%" stopColor="#4a2a72" stopOpacity="0.55" />
@@ -97,6 +118,31 @@ export function HeaderScene() {
           </g>
         </g>
       ))}
+
+      <g
+        className="banner-firework"
+        style={{
+          animationDelay: WILLOW.delay,
+          transformOrigin: `${WILLOW.cx}px ${WILLOW.cy}px`,
+        }}
+      >
+        <circle cx={WILLOW.cx} cy={WILLOW.cy} r={WILLOW.r * 1.8} fill="url(#hdr-glow-willow)" />
+        <g transform={`translate(${WILLOW.cx} ${WILLOW.cy})`}>
+          {willowTrails(WILLOW.r).map((trail, i) => (
+            <g key={i}>
+              <path
+                d={trail.d}
+                stroke={WILLOW.color}
+                strokeWidth="0.9"
+                strokeLinecap="round"
+                fill="none"
+                opacity="0.6"
+              />
+              <circle cx={trail.endX} cy={trail.endY} r="1.3" fill={WILLOW.color} opacity="0.95" />
+            </g>
+          ))}
+        </g>
+      </g>
 
       {/* 사람들이 앉은 자리. 바닥을 살짝 밝혀 사람들이 떠 보이게 합니다. */}
       <path d="M0 82 Q 250 72 520 80 T 1000 74 L1000 104 L0 104 Z" fill="url(#hdr-ground)" />
