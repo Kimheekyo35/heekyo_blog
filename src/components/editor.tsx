@@ -80,7 +80,7 @@ function Toolbar({
   const chain = () => editor.chain().focus()
 
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-border px-2 py-2 sticky top-16 bg-surface z-10">
+    <div className="flex flex-wrap items-center gap-1 border-b border-border px-2 py-2 bg-surface">
       <ToolbarButton
         title="제목"
         active={state.h2}
@@ -287,12 +287,19 @@ export function Editor({
   return (
     <div>
       <div className="border border-border rounded-xl overflow-hidden bg-surface">
+        {/* 툴바는 스크롤 영역 밖에 둬서 글이 길어져도 계속 보이게 합니다. */}
         <Toolbar
           editor={editor}
           uploading={uploading}
           onPickImage={() => fileInputRef.current?.click()}
         />
-        <EditorContent editor={editor} />
+        {/*
+          본문만 따로 스크롤합니다. 이렇게 하지 않으면 글이 길어질수록
+          칸이 계속 늘어나서 발행 버튼이 저 아래로 밀려납니다.
+        */}
+        <div className="max-h-[60vh] overflow-y-auto overscroll-contain">
+          <EditorContent editor={editor} />
+        </div>
       </div>
 
       <input
