@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { auth } from '@/auth'
 import { findPosts } from '@/lib/posts'
 import { PostList } from '@/components/post-list'
+import { WithProfileSidebar } from '@/components/profile-card'
 
 export default async function HomePage() {
   const session = await auth()
@@ -20,21 +21,23 @@ export default async function HomePage() {
         </p>
       </section>
 
-      {posts.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border py-20 text-center">
-          <p className="text-muted">아직 쓴 글이 없습니다.</p>
-          {isAdmin && (
-            <Link
-              href="/write"
-              className="mt-4 inline-block px-4 py-2 rounded-full bg-accent text-white text-sm font-medium hover:opacity-90"
-            >
-              첫 글 쓰러 가기
-            </Link>
-          )}
-        </div>
-      ) : (
-        <PostList posts={posts} />
-      )}
+      <WithProfileSidebar>
+        {posts.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border py-20 text-center">
+            <p className="text-muted">아직 쓴 글이 없습니다.</p>
+            {isAdmin && (
+              <Link
+                href="/write"
+                className="mt-4 inline-block px-4 py-2 rounded-full bg-accent text-white text-sm font-medium hover:opacity-90"
+              >
+                첫 글 쓰러 가기
+              </Link>
+            )}
+          </div>
+        ) : (
+          <PostList posts={posts} />
+        )}
+      </WithProfileSidebar>
     </>
   )
 }

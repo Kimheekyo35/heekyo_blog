@@ -133,3 +133,14 @@ model Like {
   @@unique([postId, userId]) // 한 사람이 한 글에 좋아요 한 번
   @@index([postId])
 }
+
+// 블로그 주인 소개. 한 줄만 존재하는 표라서 id를 "singleton"으로 고정합니다.
+model Profile {
+  id        String   @id @default("singleton")
+  name      String   @default("")
+  tagline   String   @default("") // 한 줄 소개
+  bio       String   @default("") // 여러 줄 자기소개
+  hobbies   String   @default("") // 쉼표로 구분 — SQLite에는 배열 타입이 없습니다
+  avatarUrl String?
+  updatedAt DateTime @updatedAt
+}
