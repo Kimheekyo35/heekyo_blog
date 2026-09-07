@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { regenerateSummary } from '@/lib/actions/blot'
+import { BlotIcon } from '@/components/blot-icon'
 
 export function BlotSummary({
   postId,
@@ -31,7 +32,10 @@ export function BlotSummary({
   return (
     <aside className="mb-10 rounded-xl border border-accent/20 bg-accent-soft px-5 py-4">
       <div className="flex items-center justify-between gap-3 mb-1.5">
-        <span className="text-xs font-bold tracking-wide text-accent font-mono">blot</span>
+        <span className="flex items-center gap-1.5 text-accent">
+          <BlotIcon className="w-4 h-4" />
+          <span className="text-xs font-bold tracking-wide font-mono">blot</span>
+        </span>
         {isAdmin && (
           <button
             type="button"

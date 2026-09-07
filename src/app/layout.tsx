@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { SiteHeader } from '@/components/site-header'
+import { BlotIcon } from '@/components/blot-icon'
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
@@ -25,7 +26,11 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <footer className="border-t border-border mt-8">
           <div className="max-w-5xl mx-auto px-5 py-8 flex items-center justify-between text-sm text-muted">
             <span>© {new Date().getFullYear()} 희교</span>
-            <span className="font-mono text-xs">powered by blot</span>
+            <span className="flex items-center gap-1.5 font-mono text-xs">
+              powered by
+              <BlotIcon className="w-3.5 h-3.5" />
+              blot
+            </span>
           </div>
         </footer>
       </body>
