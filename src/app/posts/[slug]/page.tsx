@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { LikeButton } from '@/components/like-button'
 import { LoginButton } from '@/components/login-button'
 import { CommentSection } from '@/components/comment-section'
+import { BlotSummary } from '@/components/blot-summary'
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long' }).format(d)
@@ -51,6 +52,15 @@ export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
           )}
         </div>
       </header>
+
+      {post.published && (
+        <BlotSummary
+          postId={post.id}
+          slug={decodedSlug}
+          summary={post.summary}
+          isAdmin={isAdmin}
+        />
+      )}
 
       {/*
         본문은 관리자(=나)만 작성하므로 HTML을 그대로 그립니다.

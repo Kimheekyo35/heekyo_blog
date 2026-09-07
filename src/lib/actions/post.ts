@@ -2,9 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { slugify } from '@/lib/slug'
+import { ensureSummary } from '@/lib/blot'
 
 // 화면에서 버튼을 숨기는 것만으로는 막을 수 없습니다. 실제 차단은 여기서 합니다.
 async function requireAdmin() {
@@ -73,6 +75,16 @@ export async function savePost(input: {
 
   revalidatePath('/')
   revalidatePath(`/posts/${post.slug}`)
+
+  // blot: 요약은 응답을 보낸 뒤에 만듭니다. 발행 버튼이 몇 초씩 멈추지 않도록.
+  // 본문이 그대로면 ensureSummary가 알아서 건너뛰므로 API를 다시 부르지 않습니다.
+  if (input.published) {
+    after(async () => {
+      const result = await ensureSummary(post.id)
+      if (result.status === 'created') revalidatePath(`/posts/${post.slug}`)
+    })
+  }
+
   redirect(`/posts/${post.slug}`)
 }
 
