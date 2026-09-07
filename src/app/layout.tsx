@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { SiteHeader } from '@/components/site-header'
-import { HeroBanner } from '@/components/hero-banner'
 import { BlotIcon } from '@/components/blot-icon'
 
 const geistMono = Geist_Mono({
@@ -22,7 +21,6 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="ko" className={`${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <HeroBanner />
         <SiteHeader />
         <main className="flex-1 w-full max-w-5xl mx-auto px-5 py-12">{children}</main>
         <footer className="border-t border-border mt-8">

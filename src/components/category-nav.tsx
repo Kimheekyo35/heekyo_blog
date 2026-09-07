@@ -25,8 +25,8 @@ export function CategoryNav({
             href={item.href}
             className={`shrink-0 px-3 py-2.5 text-sm border-b-2 transition-colors ${
               active
-                ? 'border-accent text-foreground font-semibold'
-                : 'border-transparent text-muted hover:text-foreground'
+                ? 'border-accent text-white font-semibold'
+                : 'border-transparent text-white/55 hover:text-white'
             }`}
           >
             {item.label}
