@@ -32,9 +32,10 @@ export function BlotSummary({
   return (
     <aside className="mb-10 rounded-xl border border-accent/20 bg-accent-soft px-5 py-4">
       <div className="flex items-center justify-between gap-3 mb-1.5">
-        <span className="flex items-center gap-1.5 text-accent">
-          <BlotIcon className="w-4 h-4" />
+        <span className="flex items-baseline gap-1.5 text-accent">
+          <BlotIcon className="w-4 h-4 self-center" />
           <span className="text-xs font-bold tracking-wide font-mono">blot</span>
+          <span className="font-cute text-[15px] leading-none opacity-55">블로그 요약해드림</span>
         </span>
         {isAdmin && (
           <button

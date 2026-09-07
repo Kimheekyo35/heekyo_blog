@@ -13,7 +13,7 @@ export async function SiteHeader() {
     // 밤하늘 장식을 깔아야 해서 라이트/다크 모드와 무관하게 항상 어둡습니다.
     // 배경 그라데이션은 SVG가 아니라 헤더 자체에 줍니다. SVG 안에만 그리면
     // 그림이 닿지 않는 좌우 끝에서 배경색이 뚝 끊겨 경계선이 보입니다.
-    <header className="sticky top-0 z-30 relative overflow-hidden text-white bg-gradient-to-b from-[#07050e] via-[#181031] to-[#33204f]">
+    <header className="sticky top-0 z-30 relative overflow-hidden text-white bg-gradient-to-b from-[#151129] via-[#221850] to-[#3d2a63]">
       {/* 폭죽과 사람은 헤더 전체 폭에 걸쳐 놓습니다. */}
       <HeaderScene />
 

@@ -20,6 +20,7 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --font-mono: var(--font-geist-mono);
+  --font-cute: var(--font-cute);
 }
 
 @media (prefers-color-scheme: dark) {
