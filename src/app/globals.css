@@ -2,26 +2,35 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --muted: #6b7280;
-  --border: #e5e7eb;
+  --background: #fbfaf9;
+  --surface: #ffffff;
+  --foreground: #1c1917;
+  --muted: #78716c;
+  --border: #e7e5e4;
+  --accent: #c2410c;
+  --accent-soft: #fff5ed;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0f0f0f;
-    --foreground: #ededed;
-    --muted: #9ca3af;
-    --border: #2a2a2a;
+    --background: #0c0a09;
+    --surface: #17140f;
+    --foreground: #f5f5f4;
+    --muted: #a8a29e;
+    --border: #2b2724;
+    --accent: #fb923c;
+    --accent-soft: #241b13;
   }
 }
 
@@ -32,6 +41,14 @@ body {
   font-family: "Pretendard", system-ui, -apple-system, "Malgun Gothic",
     "Apple SD Gothic Neo", sans-serif;
   word-break: keep-all; /* 한글 줄바꿈을 단어 단위로 */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 제목은 자간을 좁혀야 한글이 또렷해 보입니다. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
 }
 
 /* Tiptap 편집 영역: 비어 있을 때 안내 문구 */
@@ -45,4 +62,24 @@ body {
 
 .tiptap:focus {
   outline: none;
+}
+
+/* 본문 서식 */
+.prose {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-quotes: var(--muted);
+  --tw-prose-quote-borders: var(--accent);
+  --tw-prose-bullets: var(--muted);
+  --tw-prose-hr: var(--border);
+  --tw-prose-links: var(--accent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose {
+    --tw-prose-body: var(--foreground);
+    --tw-prose-headings: var(--foreground);
+    --tw-prose-bold: var(--foreground);
+  }
 }

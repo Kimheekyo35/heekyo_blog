@@ -4,13 +4,21 @@ import { useRef, useState, useTransition } from 'react'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { Editor } from '@/components/editor'
 import { savePost } from '@/lib/actions/post'
+import { CATEGORIES, DEFAULT_CATEGORY } from '@/lib/categories'
 
 export function PostForm({
   post,
 }: {
-  post?: { id: string; title: string; content: string; published: boolean }
+  post?: {
+    id: string
+    title: string
+    content: string
+    category: string | null
+    published: boolean
+  }
 }) {
   const [title, setTitle] = useState(post?.title ?? '')
+  const [category, setCategory] = useState<string>(post?.category ?? DEFAULT_CATEGORY)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const editorRef = useRef<TiptapEditor | null>(null)
@@ -20,19 +28,36 @@ export function PostForm({
     const content = editorRef.current?.getHTML() ?? ''
 
     startTransition(async () => {
-      const result = await savePost({ id: post?.id, title, content, published })
+      const result = await savePost({ id: post?.id, title, category, content, published })
       // 저장에 성공하면 서버가 글 페이지로 보내므로, 값이 돌아왔다면 실패한 것입니다.
       if (result?.error) setError(result.error)
     })
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2">
+        {CATEGORIES.map((c) => (
+          <button
+            key={c.slug}
+            type="button"
+            onClick={() => setCategory(c.slug)}
+            className={`px-3.5 py-1.5 rounded-full text-sm border transition-colors ${
+              category === c.slug
+                ? 'border-accent bg-accent-soft text-accent font-medium'
+                : 'border-border text-muted hover:text-foreground'
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="제목"
-        className="w-full text-3xl font-bold bg-transparent outline-none placeholder:text-muted/60"
+        className="w-full text-3xl font-bold bg-transparent outline-none placeholder:text-muted/50"
       />
 
       <Editor
@@ -53,7 +78,7 @@ export function PostForm({
           type="button"
           onClick={() => submit(true)}
           disabled={isPending}
-          className="px-4 py-2 rounded-md bg-foreground text-background text-sm hover:opacity-85 disabled:opacity-50"
+          className="px-5 py-2.5 rounded-full bg-accent text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"
         >
           {isPending ? '저장 중…' : post?.published ? '수정 발행' : '발행하기'}
         </button>
@@ -61,7 +86,7 @@ export function PostForm({
           type="button"
           onClick={() => submit(false)}
           disabled={isPending}
-          className="px-4 py-2 rounded-md border border-border text-sm hover:bg-border/40 disabled:opacity-50"
+          className="px-5 py-2.5 rounded-full border border-border text-sm hover:bg-border/40 disabled:opacity-50"
         >
           임시저장
         </button>

@@ -7,6 +7,7 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { slugify } from '@/lib/slug'
 import { ensureSummary } from '@/lib/blot'
+import { DEFAULT_CATEGORY, isCategorySlug } from '@/lib/categories'
 
 // 화면에서 버튼을 숨기는 것만으로는 막을 수 없습니다. 실제 차단은 여기서 합니다.
 async function requireAdmin() {
@@ -32,6 +33,7 @@ export async function savePost(input: {
   id?: string
   title: string
   content: string
+  category: string
   published: boolean
 }): Promise<SaveResult | never> {
   const user = await requireAdmin()
@@ -43,6 +45,9 @@ export async function savePost(input: {
   const textOnly = input.content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
   if (!textOnly) return { error: '내용을 입력해 주세요.' }
 
+  // 화면에서 보낸 값을 그대로 믿지 않고 아는 카테고리인지 확인합니다.
+  const category = isCategorySlug(input.category) ? input.category : DEFAULT_CATEGORY
+
   const slug = await uniqueSlug(slugify(title), input.id)
 
   const post = input.id
@@ -51,6 +56,7 @@ export async function savePost(input: {
         data: {
           title,
           slug,
+          category,
           content: input.content,
           published: input.published,
           // 이미 발행한 글을 수정할 때 발행일이 바뀌지 않도록 처음 한 번만 기록합니다.
@@ -61,6 +67,7 @@ export async function savePost(input: {
         data: {
           title,
           slug,
+          category,
           content: input.content,
           published: input.published,
           publishedAt: input.published ? new Date() : null,
@@ -74,6 +81,7 @@ export async function savePost(input: {
   }
 
   revalidatePath('/')
+  revalidatePath(`/category/${category}`)
   revalidatePath(`/posts/${post.slug}`)
 
   // blot: 요약은 응답을 보낸 뒤에 만듭니다. 발행 버튼이 몇 초씩 멈추지 않도록.

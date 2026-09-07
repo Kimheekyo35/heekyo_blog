@@ -29,9 +29,9 @@ export function BlotSummary({
   }
 
   return (
-    <aside className="mb-8 rounded-lg border border-border bg-border/20 px-4 py-3.5">
+    <aside className="mb-10 rounded-xl border border-accent/20 bg-accent-soft px-5 py-4">
       <div className="flex items-center justify-between gap-3 mb-1.5">
-        <span className="text-xs font-semibold tracking-wide text-muted">blot 요약</span>
+        <span className="text-xs font-bold tracking-wide text-accent font-mono">blot</span>
         {isAdmin && (
           <button
             type="button"
