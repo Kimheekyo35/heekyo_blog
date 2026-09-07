@@ -16,15 +16,16 @@ import { ImageGrid, GRID_LAYOUTS, DEFAULT_GRID_LAYOUT } from '@/lib/tiptap/image
 import { Figure } from '@/lib/tiptap/figure'
 
 // 글자색 팔레트. 본문에 쓸 만큼만 추립니다.
+// 검정(#1c1917)은 다크 모드에서 배경에 묻히므로 globals.css에서 되돌려 줍니다.
 const TEXT_COLORS = [
-  { value: '', label: '기본색', swatch: 'currentColor' },
-  { value: '#c2410c', label: '주황', swatch: '#c2410c' },
-  { value: '#dc2626', label: '빨강', swatch: '#dc2626' },
-  { value: '#ca8a04', label: '노랑', swatch: '#ca8a04' },
-  { value: '#15803d', label: '초록', swatch: '#15803d' },
-  { value: '#1d4ed8', label: '파랑', swatch: '#1d4ed8' },
-  { value: '#7c3aed', label: '보라', swatch: '#7c3aed' },
-  { value: '#78716c', label: '회색', swatch: '#78716c' },
+  { value: '#1c1917', label: '검정' },
+  { value: '#c2410c', label: '주황' },
+  { value: '#dc2626', label: '빨강' },
+  { value: '#ca8a04', label: '노랑' },
+  { value: '#15803d', label: '초록' },
+  { value: '#1d4ed8', label: '파랑' },
+  { value: '#7c3aed', label: '보라' },
+  { value: '#78716c', label: '회색' },
 ]
 
 /**
@@ -206,6 +207,26 @@ function Toolbar({
         </label>
       )}
 
+      {state.imageSelected && !state.gridSelected && (
+        <ToolbarButton
+          title="이 사진 아래에 설명 칸을 만듭니다"
+          onClick={() => {
+            const { from, to } = editor.state.selection
+            const attrs = editor.getAttributes('image')
+            editor
+              .chain()
+              .focus()
+              .insertContentAt(
+                { from, to },
+                { type: 'figure', attrs: { src: attrs.src, alt: attrs.alt }, content: [] },
+              )
+              .run()
+          }}
+        >
+          <span className="text-xs">설명 넣기</span>
+        </ToolbarButton>
+      )}
+
       {state.imageSelected && (
         <label className="flex items-center gap-1.5 text-xs text-muted pl-1">
           설명
@@ -238,21 +259,12 @@ function Toolbar({
               aria-label={color.label}
               aria-pressed={selected}
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() =>
-                color.value
-                  ? chain().setColor(color.value).run()
-                  : chain().unsetColor().run()
-              }
+              onClick={() => chain().setColor(color.value).run()}
               className={`w-5 h-5 rounded-full border transition-transform hover:scale-110 ${
-                selected ? 'border-foreground scale-110' : 'border-border'
+                selected ? 'border-accent scale-110' : 'border-border'
               }`}
-              style={{
-                // 기본색 칸은 색을 칠하지 않고 비워 둡니다.
-                backgroundColor: color.value || 'transparent',
-              }}
-            >
-              {!color.value && <span className="text-[10px] leading-none">×</span>}
-            </button>
+              style={{ backgroundColor: color.value }}
+            />
           )
         })}
       </div>
