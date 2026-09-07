@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import { LikeButton } from '@/components/like-button'
+import { LoginButton } from '@/components/login-button'
+import { CommentSection } from '@/components/comment-section'
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long' }).format(d)
@@ -9,16 +12,25 @@ function formatDate(d: Date) {
 
 export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
   const { slug } = await params
+  const decodedSlug = decodeURIComponent(slug)
   const session = await auth()
-  const isAdmin = session?.user?.role === 'ADMIN'
+  const me = session?.user
+  const isAdmin = me?.role === 'ADMIN'
 
   const post = await db.post.findUnique({
-    where: { slug: decodeURIComponent(slug) },
-    include: { author: { select: { name: true, image: true } } },
+    where: { slug: decodedSlug },
+    include: {
+      author: { select: { name: true } },
+      _count: { select: { likes: true } },
+      // 내가 이미 좋아요를 눌렀는지만 확인합니다.
+      likes: me?.id ? { where: { userId: me.id }, select: { id: true } } : false,
+    },
   })
 
   // 임시저장 글은 관리자에게만 보입니다.
   if (!post || (!post.published && !isAdmin)) notFound()
+
+  const likedByMe = Array.isArray(post.likes) && post.likes.length > 0
 
   return (
     <article>
@@ -48,6 +60,31 @@ export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
         className="prose dark:prose-invert max-w-none"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+
+      {post.published && (
+        <>
+          <div className="mt-12 flex justify-center">
+            {me ? (
+              <LikeButton
+                postId={post.id}
+                slug={decodedSlug}
+                initialLiked={likedByMe}
+                initialCount={post._count.likes}
+              />
+            ) : (
+              <LoginButton
+                redirectTo={`/posts/${decodedSlug}`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-sm hover:bg-border/40"
+              >
+                <span aria-hidden>♡</span>
+                <span>좋아요 {post._count.likes}</span>
+              </LoginButton>
+            )}
+          </div>
+
+          <CommentSection postId={post.id} slug={decodedSlug} />
+        </>
+      )}
     </article>
   )
 }

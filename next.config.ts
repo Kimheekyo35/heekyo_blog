@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  images: {
+    // 네이버 프로필 사진이 올라오는 곳
+    remotePatterns: [{ protocol: 'https', hostname: '**.pstatic.net' }],
+  },
+}
 
-export default nextConfig;
+export default nextConfig
