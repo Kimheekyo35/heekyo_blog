@@ -1,0 +1,133 @@
+// heekyo_blog — 데이터 모델
+// provider를 postgresql로 바꾸면 Postgres로 이전할 수 있습니다(마이그레이션 재생성 필요).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─────────────────────────────────────────────
+// 인증 (Auth.js / 네이버 로그인)
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("USER") // "ADMIN" = 글 쓸 수 있는 나, "USER" = 댓글/좋아요
+  createdAt     DateTime  @default(now())
+
+  accounts Account[]
+  sessions Session[]
+  posts    Post[]
+  comments Comment[]
+  likes    Like[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String // "naver"
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────────────────
+// 블로그
+// ─────────────────────────────────────────────
+
+model Post {
+  id          String    @id @default(cuid())
+  slug        String    @unique // URL 주소: /posts/hello-world
+  title       String
+  content     String // Tiptap이 만든 HTML
+  excerpt     String? // 목록에 보여줄 짧은 소개 (직접 작성)
+  coverImage  String?
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  viewCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  // ── blot: AI 요약 캐시 ──
+  // contentHash가 현재 본문의 해시와 다를 때만 API를 다시 호출합니다.
+  summary       String?
+  summaryModel  String? // 어떤 모델로 만들었는지 (모델 교체 시 재생성 판단용)
+  summaryHash   String? // 요약을 만들 당시 본문의 해시
+  summaryAt     DateTime?
+
+  comments Comment[]
+  likes    Like[]
+
+  @@index([published, publishedAt])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // 실제로 지우지 않고 "삭제된 댓글입니다" 처리 (대댓글 보존용)
+
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // 대댓글
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  @@index([postId, createdAt])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId]) // 한 사람이 한 글에 좋아요 한 번
+  @@index([postId])
+}
