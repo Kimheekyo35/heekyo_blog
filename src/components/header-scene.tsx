@@ -17,13 +17,19 @@ function rays(r: number, count = 14) {
   })
 }
 
-// 앉아서 보고 있는 사람들. lean은 옆 사람에게 기댄 정도입니다.
-// 옷에 색을 준 이유: 전부 검정이면 어두운 배경에 묻혀 사람으로 안 보입니다.
+/**
+ * 앉아서 보고 있는 사람들.
+ * - coat/knee: 옷 색. 전부 검정이면 어두운 배경에 묻혀 사람으로 안 보입니다.
+ * - hair: 머리색. 배경보다 확실히 밝아야 얼굴 위치가 읽힙니다.
+ * - lean: 옆 사람에게 기댄 정도
+ */
 const PEOPLE = [
-  { x: 300, s: 1, lean: 0, coat: '#f2836b', knee: '#d96a52' },
-  { x: 330, s: 0.88, lean: -8, coat: '#6fc2b4', knee: '#54a89a' },
-  { x: 610, s: 1.05, lean: 0, coat: '#f0c454', knee: '#d6a93a' },
-  { x: 880, s: 0.94, lean: 0, coat: '#a98fe0', knee: '#8f75c8' },
+  { x: 296, s: 1, lean: 0, coat: '#f2836b', knee: '#d96a52', hair: '#a9714b' },
+  // 옆 사람에게 기대앉아 손을 들고 환호하는 사람
+  { x: 328, s: 0.88, lean: -8, coat: '#6fc2b4', knee: '#54a89a', hair: '#e0aa72', arm: true },
+  // 털모자를 쓴 사람
+  { x: 610, s: 1.05, lean: 0, coat: '#f0c454', knee: '#d6a93a', hair: '#8d5f42', hat: '#e26d5c' },
+  { x: 880, s: 0.94, lean: 0, coat: '#a98fe0', knee: '#8f75c8', hair: '#d8a878' },
 ]
 
 const STARS = [
@@ -101,12 +107,35 @@ export function HeaderScene() {
             key={i}
             transform={`translate(${person.x} 104) scale(${person.s * 0.62}) rotate(${person.lean})`}
           >
+            {/* 들어 올린 팔 — 몸통보다 먼저 그려서 어깨 뒤에서 나오게 */}
+            {person.arm && (
+              <>
+                <path
+                  d="M8 -24 L19 -46"
+                  stroke={person.coat}
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <circle cx="19.5" cy="-47" r="3" fill={person.hair} />
+              </>
+            )}
+
             {/* 무릎 — 몸통보다 한 톤 어둡게 해서 앉은 자세가 드러나게 */}
             <path d="M9 -7 q14 -1 16 7 L9 0 Z" fill={person.knee} />
             {/* 몸통(옷) */}
             <path d="M-12 0 L-10 -25 Q0 -32 10 -25 L12 0 Z" fill={person.coat} />
             {/* 머리 */}
-            <circle cx="0" cy="-37" r="8" fill="#33293f" />
+            <circle cx="0" cy="-37" r="8" fill={person.hair} />
+
+            {/* 털모자 */}
+            {person.hat && (
+              <>
+                <path d="M-8.4 -38 a8.4 8.4 0 0 1 16.8 0 Z" fill={person.hat} />
+                <rect x="-9.2" y="-39.6" width="18.4" height="3.6" rx="1.8" fill={person.hat} />
+                <circle cx="0" cy="-48.6" r="2.6" fill={person.hat} />
+              </>
+            )}
           </g>
         ))}
       </g>
