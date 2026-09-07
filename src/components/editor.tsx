@@ -11,11 +11,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { Placeholder } from '@tiptap/extensions'
 import Image from '@tiptap/extension-image'
 import { uploadImage, isImageFile } from '@/lib/upload-client'
-import {
-  ImageGrid,
-  GRID_COLUMN_OPTIONS,
-  DEFAULT_GRID_COLUMNS,
-} from '@/lib/tiptap/image-grid'
+import { ImageGrid, GRID_LAYOUTS, DEFAULT_GRID_LAYOUT } from '@/lib/tiptap/image-grid'
 
 function ToolbarButton({
   onClick,
@@ -70,10 +66,13 @@ function Toolbar({
       codeBlock: e.isActive('codeBlock'),
       canUndo: e.can().undo(),
       canRedo: e.can().redo(),
-      // 사진 격자를 선택했을 때만 칸 수 조절을 보여줍니다.
+      // 사진 묶음을 선택했을 때만 배치 조절을 보여줍니다.
       gridSelected: e.isActive('imageGrid'),
-      gridColumns:
-        (e.getAttributes('imageGrid').columns as number | undefined) ?? DEFAULT_GRID_COLUMNS,
+      gridLayout: (e.getAttributes('imageGrid').layout as string | undefined) ?? DEFAULT_GRID_LAYOUT,
+      // 사진 한 장을 선택하면 대체 텍스트를 고칠 수 있습니다.
+      imageSelected: e.isActive('image'),
+      imageSrc: (e.getAttributes('image').src as string | undefined) ?? '',
+      imageAlt: (e.getAttributes('image').alt as string | undefined) ?? '',
     }),
   })
 
@@ -158,24 +157,39 @@ function Toolbar({
 
       {state.gridSelected && (
         <label className="flex items-center gap-1.5 text-xs text-muted pl-1">
-          한 줄에
+          배치
           <select
-            value={state.gridColumns}
+            value={state.gridLayout}
             onChange={(e) =>
-              editor
-                .chain()
-                .focus()
-                .updateAttributes('imageGrid', { columns: Number(e.target.value) })
-                .run()
+              editor.chain().focus().updateAttributes('imageGrid', { layout: e.target.value }).run()
             }
             className="rounded border border-border bg-surface px-1.5 py-1 text-xs"
           >
-            {GRID_COLUMN_OPTIONS.map((n) => (
-              <option key={n} value={n}>
-                {n}장
+            {GRID_LAYOUTS.map((layout) => (
+              <option key={layout.value} value={layout.value} title={layout.hint}>
+                {layout.label}
               </option>
             ))}
           </select>
+        </label>
+      )}
+
+      {state.imageSelected && (
+        <label className="flex items-center gap-1.5 text-xs text-muted pl-1">
+          설명
+          {/*
+            선택한 사진이 바뀌면 입력칸을 새로 만들어야 값이 따라옵니다.
+            타이핑 중에 문서를 계속 고치면 커서가 튀므로 다 쓰고 나갈 때 반영합니다.
+          */}
+          <input
+            key={state.imageSrc}
+            defaultValue={state.imageAlt}
+            onBlur={(e) =>
+              editor.chain().updateAttributes('image', { alt: e.target.value.trim() }).run()
+            }
+            placeholder="사진 설명 (alt)"
+            className="w-40 rounded border border-border bg-surface px-2 py-1 text-xs"
+          />
         </label>
       )}
 
@@ -216,7 +230,9 @@ export function Editor({
       const uploaded: { src: string; alt: string }[] = []
       for (const file of files) {
         const { url } = await uploadImage(file)
-        uploaded.push({ src: url, alt: file.name })
+        // 파일명(IMG_1234.jpg)은 사진 설명으로 쓸모가 없으므로 비워 둡니다.
+        // 툴바에서 사진을 선택해 직접 쓸 수 있습니다.
+        uploaded.push({ src: url, alt: '' })
       }
 
       if (uploaded.length === 0) return
@@ -232,7 +248,7 @@ export function Editor({
         .focus()
         .insertContent({
           type: 'imageGrid',
-          attrs: { columns: DEFAULT_GRID_COLUMNS },
+          attrs: { layout: DEFAULT_GRID_LAYOUT },
           content: uploaded.map((image) => ({ type: 'image', attrs: image })),
         })
         .run()

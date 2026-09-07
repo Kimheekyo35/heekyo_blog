@@ -96,35 +96,63 @@ h3 {
   outline-offset: 2px;
 }
 
-/* 사진 격자 (여러 장을 한 번에 올렸을 때) */
+/* 사진 묶음 — 배치 3종 */
 [data-image-grid] {
-  display: grid;
-  gap: 0.5rem;
   margin: 1.75rem 0;
+  --gallery-gap: 8px;
 }
-[data-image-grid][data-columns="2"] {
-  grid-template-columns: repeat(2, 1fr);
-}
-[data-image-grid][data-columns="3"] {
+
+/* 1) row3 — 가로 3열, 같은 높이로 나란히 */
+[data-image-grid][data-layout="row3"] {
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: var(--gallery-gap);
 }
-[data-image-grid][data-columns="4"] {
-  grid-template-columns: repeat(4, 1fr);
+
+/* 2) cols2 — 세로 2열, 각 열에 사진이 세로로 쌓임 (핀터레스트식) */
+[data-image-grid][data-layout="cols2"] {
+  column-count: 2;
+  column-gap: var(--gallery-gap);
 }
+[data-image-grid][data-layout="cols2"] img {
+  /* 열을 넘어가며 잘리지 않도록 */
+  break-inside: avoid;
+  margin-bottom: var(--gallery-gap);
+}
+
+/* 3) grid2x2 — 2×2 격자 */
+[data-image-grid][data-layout="grid2x2"] {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gallery-gap);
+}
+
 [data-image-grid] img {
   margin: 0;
   width: 100%;
-  /* 사진마다 비율이 달라도 격자가 어긋나지 않도록 정사각으로 맞춥니다. */
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
   border-radius: 0.5rem;
 }
 
-/* 좁은 화면에서 3~4칸은 너무 작아집니다. */
+/* 높이를 맞춰야 하는 배치에서만 잘라 채웁니다.
+   cols2는 사진마다 높이가 다른 것이 핀터레스트식 배치의 핵심이라 제외합니다. */
+[data-image-grid][data-layout="row3"] img,
+[data-image-grid][data-layout="grid2x2"] img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* 모바일에서는 전부 1열로 세로 배치 */
 @media (max-width: 640px) {
-  [data-image-grid][data-columns="3"],
-  [data-image-grid][data-columns="4"] {
-    grid-template-columns: repeat(2, 1fr);
+  [data-image-grid][data-layout="row3"],
+  [data-image-grid][data-layout="grid2x2"] {
+    grid-template-columns: 1fr;
+  }
+  [data-image-grid][data-layout="cols2"] {
+    column-count: 1;
+  }
+  /* 1열이 되면 잘라낼 이유가 없으므로 원래 비율로 보여줍니다. */
+  [data-image-grid] img {
+    aspect-ratio: auto;
   }
 }
 
