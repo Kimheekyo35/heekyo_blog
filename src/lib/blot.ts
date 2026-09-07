@@ -29,34 +29,49 @@ function htmlToText(html: string) {
     .trim()
 }
 
-async function requestSummary(title: string, text: string, model: string, apiKey: string) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+const SYSTEM_PROMPT =
+  '당신은 블로그 글을 요약하는 도우미입니다. 한국어로, 2~3문장의 평서문으로만 요약하세요. ' +
+  '"이 글은", "필자는" 같은 상투적인 말머리를 쓰지 말고 내용부터 바로 씁니다. ' +
+  '글에 없는 내용을 지어내지 마세요. 목록이나 제목 없이 줄글로만 답합니다.'
+
+function postToOpenAI(payload: object, apiKey: string) {
+  return fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content:
-            '당신은 블로그 글을 요약하는 도우미입니다. 한국어로, 2~3문장의 평서문으로만 요약하세요. ' +
-            '"이 글은", "필자는" 같은 상투적인 말머리를 쓰지 말고 내용부터 바로 씁니다. ' +
-            '글에 없는 내용을 지어내지 마세요. 목록이나 제목 없이 줄글로만 답합니다.',
-        },
-        {
-          role: 'user',
-          content: `제목: ${title}\n\n본문:\n${text}`,
-        },
-      ],
-      temperature: 0.3,
-      max_tokens: 300,
-    }),
+    body: JSON.stringify(payload),
     // 응답이 없으면 무한정 기다리지 않도록
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(60_000),
   })
+}
+
+async function requestSummary(title: string, text: string, model: string, apiKey: string) {
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `제목: ${title}\n\n본문:\n${text}` },
+  ]
+
+  // 모델 세대마다 받는 옵션이 다릅니다(max_tokens vs max_completion_tokens,
+  // temperature를 아예 안 받는 모델도 있음). 옵션 때문에 거절당하면
+  // 모델과 대화 내용만 남긴 가장 기본적인 형태로 한 번 더 시도합니다.
+  const isLegacyModel = /^(gpt-4|gpt-3)/.test(model)
+  const preferred = isLegacyModel
+    ? { model, messages, temperature: 0.3, max_tokens: 300 }
+    : { model, messages, max_completion_tokens: 1000 }
+
+  let response = await postToOpenAI(preferred, apiKey)
+
+  if (response.status === 400) {
+    const detail = await response.text().catch(() => '')
+    const isParameterProblem = /param|unsupported|unrecognized|not supported/i.test(detail)
+    if (!isParameterProblem) {
+      throw new Error(`OpenAI 응답 오류 400: ${detail.slice(0, 200)}`)
+    }
+    console.warn('[blot] 옵션이 거절되어 기본 형태로 다시 시도합니다:', detail.slice(0, 200))
+    response = await postToOpenAI({ model, messages }, apiKey)
+  }
 
   if (!response.ok) {
     const detail = await response.text().catch(() => '')
