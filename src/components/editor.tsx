@@ -13,6 +13,23 @@ import Image from '@tiptap/extension-image'
 import { uploadImage, isImageFile } from '@/lib/upload-client'
 import { ImageGrid, GRID_LAYOUTS, DEFAULT_GRID_LAYOUT } from '@/lib/tiptap/image-grid'
 
+/**
+ * 커서가 사진 묶음 안(또는 묶음 자체를 선택한 상태)이면 그 묶음의 끝 위치를 돌려줍니다.
+ * 새 사진을 그 자리에 이어 붙이기 위한 것입니다.
+ */
+function selectedGridEnd(editor: TiptapEditor): number | null {
+  if (!editor.isActive('imageGrid')) return null
+
+  const { selection, doc } = editor.state
+  let end: number | null = null
+  doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+    if (node.type.name === 'imageGrid') {
+      end = pos + node.nodeSize - 1 // 닫는 태그 바로 앞
+    }
+  })
+  return end
+}
+
 function ToolbarButton({
   onClick,
   active,
@@ -148,7 +165,7 @@ function Toolbar({
       <span className="w-px h-5 bg-border mx-1" />
 
       <ToolbarButton
-        title="사진 넣기 (여러 장을 고르면 격자로 배치됩니다)"
+        title="사진 넣기 — 파일 창에서 Ctrl+클릭으로 여러 장을 고르면 묶어서 배치됩니다"
         disabled={uploading}
         onClick={onPickImage}
       >
@@ -237,6 +254,15 @@ export function Editor({
 
       if (uploaded.length === 0) return
 
+      const images = uploaded.map((image) => ({ type: 'image', attrs: image }))
+
+      // 이미 만들어 둔 사진 묶음을 선택한 상태라면 새로 만들지 않고 거기에 이어 붙입니다.
+      const gridEnd = selectedGridEnd(editor)
+      if (gridEnd !== null) {
+        editor.chain().focus().insertContentAt(gridEnd, images).run()
+        return
+      }
+
       if (uploaded.length === 1) {
         editor.chain().focus().setImage(uploaded[0]).run()
         return
@@ -249,7 +275,7 @@ export function Editor({
         .insertContent({
           type: 'imageGrid',
           attrs: { layout: DEFAULT_GRID_LAYOUT },
-          content: uploaded.map((image) => ({ type: 'image', attrs: image })),
+          content: images,
         })
         .run()
     } catch (error) {
@@ -334,7 +360,7 @@ export function Editor({
       <p className="mt-2 text-xs text-muted">
         {uploading
           ? '사진 올리는 중…'
-          : '사진은 버튼으로 고르거나, 본문에 바로 붙여넣거나 끌어다 놓을 수 있습니다.'}
+          : '사진 여러 장을 고르려면 파일 창에서 Ctrl(맥은 ⌘)을 누른 채 클릭하세요. Shift로 범위 선택도 됩니다. 붙여넣기·끌어다 놓기도 가능합니다.'}
       </p>
 
       {uploadError && (
