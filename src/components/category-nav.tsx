@@ -26,7 +26,7 @@ export function CategoryNav({
             className={`shrink-0 px-3 py-2.5 text-sm border-b-2 transition-colors ${
               active
                 ? 'border-accent text-white font-semibold'
-                : 'border-transparent text-white/55 hover:text-white'
+                : 'border-transparent text-white/85 hover:text-white'
             }`}
           >
             {item.label}

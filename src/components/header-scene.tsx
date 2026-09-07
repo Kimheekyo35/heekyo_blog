@@ -18,11 +18,12 @@ function rays(r: number, count = 14) {
 }
 
 // 앉아서 보고 있는 사람들. lean은 옆 사람에게 기댄 정도입니다.
+// 옷에 색을 준 이유: 전부 검정이면 어두운 배경에 묻혀 사람으로 안 보입니다.
 const PEOPLE = [
-  { x: 300, s: 1, lean: 0 },
-  { x: 330, s: 0.88, lean: -8 },
-  { x: 610, s: 1.05, lean: 0 },
-  { x: 880, s: 0.94, lean: 0 },
+  { x: 300, s: 1, lean: 0, coat: '#f2836b', knee: '#d96a52' },
+  { x: 330, s: 0.88, lean: -8, coat: '#6fc2b4', knee: '#54a89a' },
+  { x: 610, s: 1.05, lean: 0, coat: '#f0c454', knee: '#d6a93a' },
+  { x: 880, s: 0.94, lean: 0, coat: '#a98fe0', knee: '#8f75c8' },
 ]
 
 const STARS = [
@@ -91,21 +92,21 @@ export function HeaderScene() {
         </g>
       ))}
 
-      {/* 사람들이 앉은 자리. 검은 실루엣이 보이도록 바닥을 살짝 밝힙니다. */}
+      {/* 사람들이 앉은 자리. 바닥을 살짝 밝혀 사람들이 떠 보이게 합니다. */}
       <path d="M0 82 Q 250 72 520 80 T 1000 74 L1000 104 L0 104 Z" fill="url(#hdr-ground)" />
 
-      <g fill="#000" opacity="0.92">
+      <g>
         {PEOPLE.map((person, i) => (
           <g
             key={i}
             transform={`translate(${person.x} 104) scale(${person.s * 0.62}) rotate(${person.lean})`}
           >
-            {/* 무릎 */}
-            <path d="M9 -7 q14 -1 16 7 L9 0 Z" />
-            {/* 몸통 */}
-            <path d="M-12 0 L-10 -25 Q0 -32 10 -25 L12 0 Z" />
+            {/* 무릎 — 몸통보다 한 톤 어둡게 해서 앉은 자세가 드러나게 */}
+            <path d="M9 -7 q14 -1 16 7 L9 0 Z" fill={person.knee} />
+            {/* 몸통(옷) */}
+            <path d="M-12 0 L-10 -25 Q0 -32 10 -25 L12 0 Z" fill={person.coat} />
             {/* 머리 */}
-            <circle cx="0" cy="-37" r="8" />
+            <circle cx="0" cy="-37" r="8" fill="#33293f" />
           </g>
         ))}
       </g>
