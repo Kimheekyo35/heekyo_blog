@@ -93,7 +93,9 @@ export async function savePost(input: {
     })
   }
 
-  redirect(`/posts/${post.slug}`)
+  // 주소를 반드시 인코딩해야 합니다. 슬러그가 한글이면 Next가 이동 주소를 담는
+  // HTTP 헤더(x-action-redirect)에 한글이 그대로 들어가 500이 납니다.
+  redirect(`/posts/${encodeURIComponent(post.slug)}`)
 }
 
 export async function deletePost(id: string) {
