@@ -12,10 +12,10 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="max-w-5xl mx-auto px-5">
         <div className="h-16 flex items-center justify-between gap-4">
-          <Link href="/" className="group flex items-baseline gap-2">
-            <span className="text-xl font-bold tracking-tight">희교</span>
-            <span className="text-xs text-muted group-hover:text-accent transition-colors">
-              blog
+          <Link href="/" className="group">
+            {/* 영문 대문자는 자간을 벌려야 이름처럼 읽힙니다. */}
+            <span className="text-lg font-bold tracking-[0.18em] group-hover:text-accent transition-colors">
+              KIM HEEKYO
             </span>
           </Link>
 

@@ -11,8 +11,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: '희교 blog',
-    template: '%s · 희교 blog',
+    default: 'KIM HEEKYO',
+    template: '%s · KIM HEEKYO',
   },
   description: '일상과 만드는 이야기를 기록합니다.',
 }
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <main className="flex-1 w-full max-w-5xl mx-auto px-5 py-12">{children}</main>
         <footer className="border-t border-border mt-8">
           <div className="max-w-5xl mx-auto px-5 py-8 flex items-center justify-between text-sm text-muted">
-            <span>© {new Date().getFullYear()} 희교</span>
+            <span>© {new Date().getFullYear()} KIM HEEKYO</span>
             <span className="flex items-center gap-1.5 font-mono text-xs">
               powered by
               <BlotIcon className="w-3.5 h-3.5" />
