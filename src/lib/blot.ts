@@ -54,12 +54,20 @@ async function requestSummary(title: string, text: string, model: string, apiKey
   ]
 
   // 모델 세대마다 받는 옵션이 다릅니다(max_tokens vs max_completion_tokens,
-  // temperature를 아예 안 받는 모델도 있음). 옵션 때문에 거절당하면
-  // 모델과 대화 내용만 남긴 가장 기본적인 형태로 한 번 더 시도합니다.
+  // temperature나 reasoning_effort를 아예 안 받는 모델도 있음). 옵션 때문에
+  // 거절당하면 모델과 대화 내용만 남긴 가장 기본적인 형태로 한 번 더 시도합니다.
   const isLegacyModel = /^(gpt-4|gpt-3)/.test(model)
   const preferred = isLegacyModel
     ? { model, messages, temperature: 0.3, max_tokens: 300 }
-    : { model, messages, max_completion_tokens: 1000 }
+    : {
+        model,
+        messages,
+        max_completion_tokens: 1000,
+        // 요약은 깊이 생각할 일이 아니라서 추론 단계를 끕니다.
+        // gpt-5.6-luna 기준 응답이 3.0초 -> 1.5초로 줄었습니다.
+        // 모델을 바꿔서 이 값을 안 받으면 위의 재시도 경로가 처리합니다.
+        reasoning_effort: process.env.BLOT_REASONING_EFFORT || 'none',
+      }
 
   let response = await postToOpenAI(preferred, apiKey)
 
