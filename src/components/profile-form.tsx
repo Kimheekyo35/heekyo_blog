@@ -33,6 +33,9 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   const [bio, setBio] = useState(profile.bio)
   const [hobbies, setHobbies] = useState(profile.hobbies)
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl)
+  const [musicTitle, setMusicTitle] = useState(profile.musicTitle)
+  const [musicArtist, setMusicArtist] = useState(profile.musicArtist)
+  const [musicUrl, setMusicUrl] = useState(profile.musicUrl ?? '')
 
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -55,7 +58,16 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   function submit() {
     setError(null)
     startTransition(async () => {
-      const result = await saveProfile({ name, tagline, bio, hobbies, avatarUrl })
+      const result = await saveProfile({
+        name,
+        tagline,
+        bio,
+        hobbies,
+        avatarUrl,
+        musicTitle,
+        musicArtist,
+        musicUrl,
+      })
       // 저장에 성공하면 홈으로 보내므로, 값이 돌아왔다면 실패한 것입니다.
       if (result?.error) setError(result.error)
     })
@@ -151,6 +163,45 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           className={inputClass}
         />
       </Field>
+
+      <div className="pt-2 border-t border-border space-y-5">
+        <div>
+          <h2 className="text-sm font-semibold">지금 듣는 곡</h2>
+          <p className="mt-1 text-xs text-muted">
+            소리가 나지는 않습니다. 무엇을 듣고 있는지 보여주고 옆에서 막대가 움직입니다.
+            비워두면 이 칸 자체가 안 보입니다.
+          </p>
+        </div>
+
+        <Field label="곡 제목">
+          <input
+            value={musicTitle}
+            onChange={(e) => setMusicTitle(e.target.value)}
+            maxLength={80}
+            placeholder="예: 밤편지"
+            className={inputClass}
+          />
+        </Field>
+
+        <Field label="아티스트">
+          <input
+            value={musicArtist}
+            onChange={(e) => setMusicArtist(e.target.value)}
+            maxLength={60}
+            placeholder="예: 아이유"
+            className={inputClass}
+          />
+        </Field>
+
+        <Field label="들으러 갈 주소 (선택)" hint="유튜브·스포티파이 등. 누르면 새 탭에서 열립니다.">
+          <input
+            value={musicUrl}
+            onChange={(e) => setMusicUrl(e.target.value)}
+            placeholder="https://..."
+            className={inputClass}
+          />
+        </Field>
+      </div>
 
       {error && (
         <p className="text-sm text-red-600 dark:text-red-400" role="alert">

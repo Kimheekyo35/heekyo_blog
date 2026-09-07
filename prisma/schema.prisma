@@ -142,5 +142,10 @@ model Profile {
   bio       String   @default("") // 여러 줄 자기소개
   hobbies   String   @default("") // 쉼표로 구분 — SQLite에는 배열 타입이 없습니다
   avatarUrl String?
+
+  // 지금 듣는 곡. 실제로 재생하지는 않고 무엇을 듣는지만 보여줍니다.
+  musicTitle  String  @default("")
+  musicArtist String  @default("")
+  musicUrl    String? // 유튜브·스포티파이 등 들으러 갈 주소 (선택)
   updatedAt DateTime @updatedAt
 }
