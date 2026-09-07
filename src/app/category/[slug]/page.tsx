@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { findPosts } from '@/lib/posts'
 import { PostList } from '@/components/post-list'
-import { WithProfileSidebar } from '@/components/profile-card'
 import { CATEGORIES, findCategory } from '@/lib/categories'
 
 // 카테고리는 고정된 목록이라 미리 만들어 둘 수 있습니다.
@@ -32,15 +31,13 @@ export default async function CategoryPage({ params }: PageProps<'/category/[slu
         <p className="mt-2 text-muted">{category.tagline}</p>
       </section>
 
-      <WithProfileSidebar>
-        {posts.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border py-20 text-center text-muted">
-            이 카테고리에는 아직 글이 없습니다.
-          </div>
-        ) : (
-          <PostList posts={posts} />
-        )}
-      </WithProfileSidebar>
+      {posts.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border py-20 text-center text-muted">
+          이 카테고리에는 아직 글이 없습니다.
+        </div>
+      ) : (
+        <PostList posts={posts} />
+      )}
     </>
   )
 }
