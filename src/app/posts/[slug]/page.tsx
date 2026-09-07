@@ -7,6 +7,7 @@ import { LikeButton } from '@/components/like-button'
 import { LoginButton } from '@/components/login-button'
 import { CommentSection } from '@/components/comment-section'
 import { BlotSummary } from '@/components/blot-summary'
+import { ImageLightbox } from '@/components/image-lightbox'
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long' }).format(d)
@@ -102,6 +103,7 @@ export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
         className="prose prose-stone dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-accent"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+      <ImageLightbox />
 
       {post.published && (
         <>

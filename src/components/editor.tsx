@@ -11,6 +11,11 @@ import StarterKit from '@tiptap/starter-kit'
 import { Placeholder } from '@tiptap/extensions'
 import Image from '@tiptap/extension-image'
 import { uploadImage, isImageFile } from '@/lib/upload-client'
+import {
+  ImageGrid,
+  GRID_COLUMN_OPTIONS,
+  DEFAULT_GRID_COLUMNS,
+} from '@/lib/tiptap/image-grid'
 
 function ToolbarButton({
   onClick,
@@ -65,6 +70,10 @@ function Toolbar({
       codeBlock: e.isActive('codeBlock'),
       canUndo: e.can().undo(),
       canRedo: e.can().redo(),
+      // 사진 격자를 선택했을 때만 칸 수 조절을 보여줍니다.
+      gridSelected: e.isActive('imageGrid'),
+      gridColumns:
+        (e.getAttributes('imageGrid').columns as number | undefined) ?? DEFAULT_GRID_COLUMNS,
     }),
   })
 
@@ -139,9 +148,36 @@ function Toolbar({
 
       <span className="w-px h-5 bg-border mx-1" />
 
-      <ToolbarButton title="사진 넣기" disabled={uploading} onClick={onPickImage}>
+      <ToolbarButton
+        title="사진 넣기 (여러 장을 고르면 격자로 배치됩니다)"
+        disabled={uploading}
+        onClick={onPickImage}
+      >
         {uploading ? '…' : '🖼'}
       </ToolbarButton>
+
+      {state.gridSelected && (
+        <label className="flex items-center gap-1.5 text-xs text-muted pl-1">
+          한 줄에
+          <select
+            value={state.gridColumns}
+            onChange={(e) =>
+              editor
+                .chain()
+                .focus()
+                .updateAttributes('imageGrid', { columns: Number(e.target.value) })
+                .run()
+            }
+            className="rounded border border-border bg-surface px-1.5 py-1 text-xs"
+          >
+            {GRID_COLUMN_OPTIONS.map((n) => (
+              <option key={n} value={n}>
+                {n}장
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <span className="w-px h-5 bg-border mx-1" />
 
@@ -175,10 +211,31 @@ export function Editor({
     setUploadError(null)
     setUploading(true)
     try {
+      // 먼저 전부 올린 뒤에 한 번에 넣습니다.
+      // 한 장씩 넣으면 여러 장일 때 격자로 묶을 수가 없습니다.
+      const uploaded: { src: string; alt: string }[] = []
       for (const file of files) {
         const { url } = await uploadImage(file)
-        editor.chain().focus().setImage({ src: url, alt: file.name }).run()
+        uploaded.push({ src: url, alt: file.name })
       }
+
+      if (uploaded.length === 0) return
+
+      if (uploaded.length === 1) {
+        editor.chain().focus().setImage(uploaded[0]).run()
+        return
+      }
+
+      // 두 장 이상이면 격자로 묶습니다.
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: 'imageGrid',
+          attrs: { columns: DEFAULT_GRID_COLUMNS },
+          content: uploaded.map((image) => ({ type: 'image', attrs: image })),
+        })
+        .run()
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : '사진을 올리지 못했습니다.')
     } finally {
@@ -191,6 +248,7 @@ export function Editor({
       StarterKit,
       Placeholder.configure({ placeholder: '무슨 이야기를 써볼까요?' }),
       Image.configure({ inline: false }),
+      ImageGrid,
     ],
     content: initialContent ?? '',
     // 서버에서 미리 그려두면 화면이 어긋나므로 브라우저에서만 그립니다.
