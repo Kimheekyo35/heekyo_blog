@@ -45,6 +45,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+  글쓰기 툴바에서 고를 수 있는 본문 글꼴.
+  글 안에는 실제 글꼴 이름 대신 var(--post-font-…)만 저장하므로,
+  나중에 대체 글꼴을 손봐도 이미 써 둔 글에 그대로 반영됩니다.
+  이름 앞에 post-를 붙인 것은 --font-sans 같은 Tailwind 기본 토큰과 겹치지 않게 하려는 것입니다.
+*/
+:root {
+  /* 궁서는 윈도우(궁서)와 맥(GungSeo)에 기본으로 깔려 있습니다.
+     없는 기기(안드로이드 등)에서는 결이 가장 가까운 명조 웹폰트로 대신합니다. */
+  --post-font-gungseo: "궁서", Gungsuh, GungsuhChe, GungSeo, "Apple Myungjo",
+    var(--font-myeongjo), serif;
+  --post-font-batang: var(--font-batang), "Apple SD Gothic Neo", serif;
+  --post-font-gothic: var(--font-gothic), system-ui, sans-serif;
+}
+
 /* 제목은 자간을 좁혀야 한글이 또렷해 보입니다. */
 h1,
 h2,

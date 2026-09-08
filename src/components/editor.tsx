@@ -11,7 +11,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { Placeholder } from '@tiptap/extensions'
 import Image from '@tiptap/extension-image'
 import { uploadImage, isImageFile } from '@/lib/upload-client'
-import { TextStyle, Color } from '@tiptap/extension-text-style'
+import { TextStyle, Color, FontFamily } from '@tiptap/extension-text-style'
 import { ImageGrid, GRID_LAYOUTS, DEFAULT_GRID_LAYOUT } from '@/lib/tiptap/image-grid'
 import { Figure } from '@/lib/tiptap/figure'
 
@@ -26,6 +26,16 @@ const TEXT_COLORS = [
   { value: '#1d4ed8', label: '파랑' },
   { value: '#7c3aed', label: '보라' },
   { value: '#78716c', label: '회색' },
+]
+
+// 본문에 쓸 수 있는 글꼴.
+// 실제 글꼴 이름 대신 CSS 변수를 저장합니다. 기기마다 있는 글꼴이 달라서
+// globals.css의 --post-font-* 에 대체 글꼴까지 묶어 뒀습니다.
+const FONTS = [
+  { value: '', label: '기본', hint: '블로그 기본 글꼴로 되돌립니다' },
+  { value: 'var(--post-font-gungseo)', label: '궁서', hint: '붓으로 쓴 듯한 옛 글씨체' },
+  { value: 'var(--post-font-batang)', label: '고운바탕', hint: '부드러운 명조체' },
+  { value: 'var(--post-font-gothic)', label: '고딕', hint: '군더더기 없는 고딕체' },
 ]
 
 /**
@@ -62,6 +72,7 @@ function ToolbarButton({
     <button
       type="button"
       title={title}
+      aria-pressed={active}
       onMouseDown={(e) => e.preventDefault()} // 버튼을 눌러도 본문 커서를 잃지 않도록
       onClick={onClick}
       disabled={disabled}
@@ -106,6 +117,7 @@ function Toolbar({
       imageSrc: (e.getAttributes('image').src as string | undefined) ?? '',
       imageAlt: (e.getAttributes('image').alt as string | undefined) ?? '',
       textColor: (e.getAttributes('textStyle').color as string | undefined) ?? '',
+      fontFamily: (e.getAttributes('textStyle').fontFamily as string | undefined) ?? '',
     }),
   })
 
@@ -248,6 +260,28 @@ function Toolbar({
 
       <span className="w-px h-5 bg-border mx-1" />
 
+      <div className="flex items-center gap-1" role="group" aria-label="글꼴">
+        {FONTS.map((font) => (
+          <ToolbarButton
+            key={font.label}
+            title={`${font.label} — ${font.hint}. 고른 글자에 적용되고, 고른 글자가 없으면 이어서 쓸 글자에 적용됩니다.`}
+            active={state.fontFamily === font.value}
+            onClick={() => {
+              // '기본'은 글꼴 지정을 지워서 블로그 기본 글꼴로 되돌립니다.
+              if (font.value) chain().setFontFamily(font.value).run()
+              else chain().unsetFontFamily().run()
+            }}
+          >
+            {/* 버튼 자체를 그 글꼴로 그려서 모양을 미리 봅니다. */}
+            <span className="text-xs" style={{ fontFamily: font.value || undefined }}>
+              {font.label}
+            </span>
+          </ToolbarButton>
+        ))}
+      </div>
+
+      <span className="w-px h-5 bg-border mx-1" />
+
       <div className="flex items-center gap-1" role="group" aria-label="글자색">
         {TEXT_COLORS.map((color) => {
           const selected = state.textColor === color.value
@@ -358,6 +392,7 @@ export function Editor({
       Figure,
       TextStyle,
       Color,
+      FontFamily,
     ],
     content: initialContent ?? '',
     // 서버에서 미리 그려두면 화면이 어긋나므로 브라우저에서만 그립니다.

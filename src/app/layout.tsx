@@ -1,5 +1,11 @@
 import type { Metadata } from 'next'
-import { Geist_Mono, Gaegu } from 'next/font/google'
+import {
+  Geist_Mono,
+  Gaegu,
+  Nanum_Myeongjo,
+  Gowun_Batang,
+  Gothic_A1,
+} from 'next/font/google'
 import './globals.css'
 import { SiteHeader } from '@/components/site-header'
 import { BlotIcon } from '@/components/blot-icon'
@@ -18,6 +24,31 @@ const gaegu = Gaegu({
   subsets: ['latin'],
 })
 
+// 글쓰기에서 고를 수 있는 본문 글꼴들.
+// 글의 일부에만 쓰일 수도 있으니 미리 받아두지 않습니다(preload: false).
+// 실제 조합은 globals.css의 --post-font-* 에서 기기별 대체 글꼴과 함께 묶습니다.
+// next/font는 각 글꼴을 최상위 const에 하나씩 담아야 합니다.
+// '궁서'가 없는 기기에서 대신 쓸 명조.
+const myeongjo = Nanum_Myeongjo({
+  variable: '--font-myeongjo',
+  weight: ['400', '700'],
+  preload: false,
+})
+
+const gowunBatang = Gowun_Batang({
+  variable: '--font-batang',
+  weight: ['400', '700'],
+  preload: false,
+})
+
+const gothicA1 = Gothic_A1({
+  variable: '--font-gothic',
+  weight: ['400', '700'],
+  preload: false,
+})
+
+const postFonts = [myeongjo, gowunBatang, gothicA1].map((font) => font.variable).join(' ')
+
 export const metadata: Metadata = {
   title: {
     default: 'KIM HEEKYO',
@@ -28,7 +59,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="ko" className={`${geistMono.variable} ${gaegu.variable} h-full antialiased`}>
+    <html
+      lang="ko"
+      className={`${geistMono.variable} ${gaegu.variable} ${postFonts} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">
         <SiteHeader />
         <main className="flex-1 w-full max-w-5xl mx-auto px-5 py-12">{children}</main>
