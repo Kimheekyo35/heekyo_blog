@@ -286,7 +286,7 @@ figcaption {
 @media (min-width: 1024px) {
   .desktop {
     /* 화면을 꽉 채우되(헤더 높이만큼 뺌) 너무 길어지지는 않게. */
-    height: min(80vh, 720px);
+    height: min(calc(100svh - 9rem), 820px);
     min-height: 580px;
   }
 
@@ -351,5 +351,26 @@ figcaption {
 
 /* 글을 쓴 날은 눌러서 그 글로 갈 수 있습니다. */
 a.doodle-cell:hover {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+/* 달력에서 지금 펼쳐 보고 있는 날 */
+.doodle-cell-picked {
+  background: var(--ink);
+  color: var(--paper);
+}
+/* 뒤집힌 칸에서는 점도 종이색으로 */
+.doodle-cell-picked .cal-dot {
+  background: var(--paper);
+}
+
+/* 그날 쓴 글 — 손으로 그은 밑줄 */
+.doodle-link {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-skip-ink: none;
+}
+.doodle-link:hover {
   background: color-mix(in srgb, var(--ink) 12%, transparent);
 }

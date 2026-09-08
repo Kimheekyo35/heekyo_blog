@@ -9,11 +9,18 @@ import type { PostListItem } from '@/components/post-list'
 import type { Profile } from '@/lib/profile'
 import { BlotIcon } from '@/components/blot-icon'
 import { FolderIcon, DocIcon, PencilIcon } from '@/components/desktop/icons'
+import { lift, shadow, photo, tile, label as labelClass, labelFile } from '@/components/desktop/styles'
 import { DesktopAdder } from '@/components/desktop/desktop-adder'
-import { DesktopCalendar, type CalendarPost } from '@/components/desktop/desktop-calendar'
+import { ProfileWindow } from '@/components/desktop/profile-window'
+import {
+  CalendarProvider,
+  CalendarButton,
+  CalendarFile,
+  type CalendarPost,
+} from '@/components/desktop/desktop-calendar'
 
 /*
-  홈 = 바탕화면.
+  홈 = 바탕화면. 이 화면이 전부이고, 글은 폴더나 달력을 거쳐 찾아갑니다.
   넓은 화면에서는 아이콘이 사방에 흩어져 있고, 좁은 화면에서는 가운데로 모여
   위에서 아래로 쌓입니다. 흩뿌리는 좌표(--x, --y)는 바탕화면 크기의 비율이라
   창 크기가 달라져도 배치가 그대로 유지됩니다. globals.css의 .desktop-item 참고.
@@ -47,28 +54,11 @@ function DesktopItem({
   )
 }
 
-/** 아이콘 아래 이름표. 파인더처럼, 가리키면 이름표에 색이 찹니다. */
-function Label({ children, mono }: { children: React.ReactNode; mono?: boolean }) {
-  return (
-    <span
-      className={`mt-2 inline-block max-w-full rounded px-1.5 py-0.5 align-top leading-tight transition-colors group-hover:bg-accent group-hover:text-white ${
-        mono ? 'line-clamp-2 font-mono text-[11px] tracking-tight' : 'text-[13px]'
-      }`}
-    >
-      {children}
-    </span>
-  )
-}
-
-const lift = 'group block text-center transition-transform duration-200 hover:-translate-y-1'
-const shadow = 'drop-shadow-[0_8px_14px_rgba(58,42,34,0.16)]'
-const photo = `relative mx-auto overflow-hidden rounded-[3px] ring-1 ring-black/10 ${shadow}`
-
 function CategoryFolder({ slug, label }: { slug: string; label: string }) {
   return (
     <Link href={`/category/${slug}`} className={lift}>
       <FolderIcon className={`w-full ${shadow}`} />
-      <Label>{label}</Label>
+      <span className={`${labelClass} text-[13px]`}>{label}</span>
     </Link>
   )
 }
@@ -88,7 +78,7 @@ function PostFile({ post, portrait }: { post: PostListItem; portrait?: boolean }
       ) : (
         <DocIcon className={`mx-auto w-[76%] ${shadow}`} />
       )}
-      <Label mono>{name}</Label>
+      <span className={labelFile}>{name}</span>
     </Link>
   )
 }
@@ -141,11 +131,9 @@ function Tile({
   external?: boolean
   children: React.ReactNode
 }) {
-  const box = `flex aspect-square w-full items-center justify-center overflow-hidden rounded-[26%] bg-surface ring-1 ring-black/10 ${shadow}`
-
   if (!href) {
     return (
-      <div className={box} title={label} aria-label={label}>
+      <div className={tile} title={label} aria-label={label}>
         {children}
       </div>
     )
@@ -157,7 +145,7 @@ function Tile({
       title={label}
       aria-label={label}
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      className={`${box} transition-transform duration-200 hover:-translate-y-1`}
+      className={`${tile} transition-transform duration-200 hover:-translate-y-1`}
     >
       {children}
     </Link>
@@ -189,6 +177,8 @@ function TileEqualizer() {
 export function Desktop({
   posts,
   profile,
+  hobbies,
+  showProfile,
   isAdmin,
   items,
   today,
@@ -196,131 +186,126 @@ export function Desktop({
 }: {
   posts: PostListItem[]
   profile: Profile
+  hobbies: string[]
+  showProfile: boolean
   isAdmin: boolean
   items: DesktopItemRow[]
   today: string
   calendarPosts: CalendarPost[]
 }) {
-  // 파일로 띄울 글은 최신 네 개까지만. 나머지는 아래 목록에서 봅니다.
+  // 파일로 띄울 글은 최신 네 개까지만. 나머지는 폴더와 달력에서 찾습니다.
   const files = posts.slice(0, 4)
 
   return (
-    <section className="desktop relative w-full px-5 pt-6 pb-10 lg:px-10 lg:py-0">
-      {/* 제목은 맨 위 가운데. 큰 폴더가 글자 아랫부분을 살짝 덮습니다. */}
-      <DesktopItem x="50%" y="27%" w="min(42rem, 84vw)">
-        <div className="flex select-none flex-col items-center">
-          <h1 className="text-center font-display text-[clamp(3.4rem,14vw,9rem)] font-extrabold leading-[0.85] tracking-[-0.05em]">
-            heekyo
-          </h1>
+    <CalendarProvider today={today} posts={calendarPosts}>
+      <section className="desktop relative w-full px-5 pt-6 pb-10 lg:px-10 lg:py-0">
+        {/* 제목은 맨 위 가운데. 큰 폴더가 글자 아랫부분을 살짝 덮습니다. */}
+        <DesktopItem x="50%" y="27%" w="min(42rem, 84vw)">
+          <div className="flex select-none flex-col items-center">
+            <h1 className="text-center font-display text-[clamp(3.4rem,14vw,9rem)] font-extrabold leading-[0.85] tracking-[-0.05em]">
+              heekyo
+            </h1>
 
-          {/* 누르면 아래 글 목록으로 내려갑니다. */}
-          <Link
-            href="#posts"
-            aria-label="글 목록 보기"
-            className="relative z-10 -mt-[4%] w-[40%] transition-transform duration-200 hover:-translate-y-1"
-          >
-            <FolderIcon className={`w-full ${shadow}`} />
-          </Link>
-
-          <span className="mt-3 font-script text-[clamp(1.4rem,3vw,2.2rem)] italic leading-none text-muted">
-            ({new Date().getFullYear()})
-          </span>
-        </div>
-      </DesktopItem>
-
-      {/* 흩어진 아이콘들 — 좁은 화면에서는 여기서부터 아래로 쌓입니다. */}
-      <div className="desktop-scatter">
-        <DesktopItem x="9%" y="37%" r={-3}>
-          <CategoryFolder {...CATEGORIES[0]} />
-        </DesktopItem>
-        <DesktopItem x="88%" y="18%" r={3}>
-          <CategoryFolder {...CATEGORIES[1]} />
-        </DesktopItem>
-        <DesktopItem x="12%" y="77%" r={2}>
-          <CategoryFolder {...CATEGORIES[2]} />
-        </DesktopItem>
-
-        <DesktopItem x="16%" y="12%" r={-5} w="4.6rem">
-          <Tile label="blot — 글을 대신 요약해 주는 로봇">
-            <BlotIcon className="w-[58%] text-accent" />
-          </Tile>
-        </DesktopItem>
-
-        {/* 손그림 달력 — 글을 쓴 날에 점이 찍힙니다. */}
-        <DesktopItem x="84%" y="68%" r={-2} w="6.5rem">
-          <DesktopCalendar today={today} posts={calendarPosts} />
-        </DesktopItem>
-
-        {profile.musicTitle && (
-          <DesktopItem x="20%" y="63%" r={4} w="4.6rem">
-            <Tile
-              label={`지금 듣는 곡 — ${profile.musicTitle}`}
-              href={profile.musicUrl ?? undefined}
-              external
+            {/* 큰 폴더도 달력으로 이어집니다. 글은 날짜로 찾아갑니다. */}
+            <CalendarButton
+              label="달력에서 글 찾기"
+              className="relative z-10 -mt-[4%] w-[40%] transition-transform duration-200 hover:-translate-y-1"
             >
-              <TileEqualizer />
+              <FolderIcon className={`w-full ${shadow}`} />
+            </CalendarButton>
+
+            <span className="mt-3 font-script text-[clamp(1.4rem,3vw,2.2rem)] italic leading-none text-muted">
+              ({new Date().getFullYear()})
+            </span>
+          </div>
+        </DesktopItem>
+
+        {/* 흩어진 아이콘들 — 좁은 화면에서는 여기서부터 아래로 쌓입니다. */}
+        <div className="desktop-scatter">
+          <DesktopItem x="9%" y="37%" r={-3}>
+            <CategoryFolder {...CATEGORIES[0]} />
+          </DesktopItem>
+          <DesktopItem x="88%" y="18%" r={3}>
+            <CategoryFolder {...CATEGORIES[1]} />
+          </DesktopItem>
+          <DesktopItem x="12%" y="77%" r={2}>
+            <CategoryFolder {...CATEGORIES[2]} />
+          </DesktopItem>
+
+          <DesktopItem x="16%" y="12%" r={-5} w="4.6rem">
+            <Tile label="blot — 글을 대신 요약해 주는 로봇">
+              <BlotIcon className="w-[58%] text-accent" />
             </Tile>
           </DesktopItem>
-        )}
 
-        {profile.avatarUrl && (
-          <DesktopItem x="93%" y="45%" r={-4} w="4.6rem">
-            <Tile label={`${profile.name || '블로그 주인'} 소개`} href="#about">
-              <Image
-                src={profile.avatarUrl}
-                alt=""
-                width={224}
-                height={224}
-                className="h-full w-full object-cover"
-              />
-            </Tile>
+          {/* 손그림 달력 — 글 쓴 날을 누르면 그날 글이 나옵니다. */}
+          <DesktopItem x="84%" y="68%" r={-2} w="6.5rem">
+            <CalendarFile />
           </DesktopItem>
-        )}
 
-        {isAdmin && (
-          <DesktopItem x="6%" y="58%" r={5} w="4.6rem">
-            <Tile label="새 글 쓰기" href="/write">
-              <PencilIcon className="w-[52%] text-accent" />
-            </Tile>
-          </DesktopItem>
-        )}
+          {profile.musicTitle && (
+            <DesktopItem x="20%" y="63%" r={4} w="4.6rem">
+              <Tile
+                label={`지금 듣는 곡 — ${profile.musicTitle}`}
+                href={profile.musicUrl ?? undefined}
+                external
+              >
+                <TileEqualizer />
+              </Tile>
+            </DesktopItem>
+          )}
 
-        {files[0] && (
-          <DesktopItem x="64%" y="66%" r={-2} w="7rem">
-            <PostFile post={files[0]} />
-          </DesktopItem>
-        )}
-        {files[1] && (
-          <DesktopItem x="35%" y="68%" r={-1} w="7rem">
-            <PostFile post={files[1]} portrait />
-          </DesktopItem>
-        )}
-        {files[2] && (
-          <DesktopItem x="48%" y="85%" r={2} w="7rem">
-            <PostFile post={files[2]} />
-          </DesktopItem>
-        )}
-        {files[3] && (
-          <DesktopItem x="72%" y="86%" r={-1} w="7rem">
-            <PostFile post={files[3]} />
-          </DesktopItem>
-        )}
+          {showProfile && (
+            <DesktopItem x="93%" y="45%" r={-4} w="4.6rem">
+              <ProfileWindow profile={profile} hobbies={hobbies} isAdmin={isAdmin} />
+            </DesktopItem>
+          )}
 
-        {/* 주인이 올려 둔 사진과 파일 */}
-        {items.map((item) => (
-          <DesktopItem
-            key={item.id}
-            x={`${item.x}%`}
-            y={`${item.y}%`}
-            r={item.rotate}
-            w={item.kind === 'image' ? '7rem' : '6.5rem'}
-          >
-            <UserItem item={item} isAdmin={isAdmin} />
-          </DesktopItem>
-        ))}
-      </div>
+          {isAdmin && (
+            <DesktopItem x="6%" y="58%" r={5} w="4.6rem">
+              <Tile label="새 글 쓰기" href="/write">
+                <PencilIcon className="w-[52%] text-accent" />
+              </Tile>
+            </DesktopItem>
+          )}
 
-      {isAdmin && <DesktopAdder />}
-    </section>
+          {files[0] && (
+            <DesktopItem x="64%" y="66%" r={-2} w="7rem">
+              <PostFile post={files[0]} />
+            </DesktopItem>
+          )}
+          {files[1] && (
+            <DesktopItem x="35%" y="68%" r={-1} w="7rem">
+              <PostFile post={files[1]} portrait />
+            </DesktopItem>
+          )}
+          {files[2] && (
+            <DesktopItem x="48%" y="85%" r={2} w="7rem">
+              <PostFile post={files[2]} />
+            </DesktopItem>
+          )}
+          {files[3] && (
+            <DesktopItem x="72%" y="86%" r={-1} w="7rem">
+              <PostFile post={files[3]} />
+            </DesktopItem>
+          )}
+
+          {/* 주인이 올려 둔 사진과 파일 */}
+          {items.map((item) => (
+            <DesktopItem
+              key={item.id}
+              x={`${item.x}%`}
+              y={`${item.y}%`}
+              r={item.rotate}
+              w={item.kind === 'image' ? '7rem' : '6.5rem'}
+            >
+              <UserItem item={item} isAdmin={isAdmin} />
+            </DesktopItem>
+          ))}
+        </div>
+
+        {isAdmin && <DesktopAdder />}
+      </section>
+    </CalendarProvider>
   )
 }
