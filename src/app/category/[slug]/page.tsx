@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { findPosts } from '@/lib/posts'
 import { PostList } from '@/components/post-list'
 import { CATEGORIES, findCategory } from '@/lib/categories'
+import { Container } from '@/components/container'
 
 // 카테고리는 고정된 목록이라 미리 만들어 둘 수 있습니다.
 export function generateStaticParams() {
@@ -25,7 +26,7 @@ export default async function CategoryPage({ params }: PageProps<'/category/[slu
   const posts = await findPosts({ isAdmin, category: category.slug })
 
   return (
-    <>
+    <Container>
       <section className="mb-10">
         <h1 className="text-3xl font-bold">{category.label}</h1>
         <p className="mt-2 text-muted">{category.tagline}</p>
@@ -38,6 +39,6 @@ export default async function CategoryPage({ params }: PageProps<'/category/[slu
       ) : (
         <PostList posts={posts} />
       )}
-    </>
+    </Container>
   )
 }

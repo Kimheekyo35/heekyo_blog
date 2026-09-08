@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { PostForm } from '@/components/post-form'
 import { DeletePostButton } from '@/components/delete-post-button'
+import { Container } from '@/components/container'
 
 export const metadata = { title: '글 수정' }
 
@@ -18,11 +19,11 @@ export default async function EditPostPage({ params }: PageProps<'/write/[id]'>)
   if (!post) notFound()
 
   return (
-    <div className="space-y-8">
+    <Container className="space-y-8">
       <PostForm post={post} />
       <div className="pt-6 border-t border-border flex justify-end">
         <DeletePostButton id={post.id} title={post.title} />
       </div>
-    </div>
+    </Container>
   )
 }

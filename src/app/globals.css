@@ -2,13 +2,23 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  --background: #fbfaf9;
-  --surface: #ffffff;
-  --foreground: #1c1917;
-  --muted: #78716c;
-  --border: #e7e5e4;
-  --accent: #c2410c;
-  --accent-soft: #fff5ed;
+  /* 데스크톱(바탕화면) 톤 — 베이지 바탕에 파란 폴더. */
+  --background: #efeae1;
+  --surface: #fbf9f6;
+  --foreground: #3a2a22;
+  --muted: #8a7b6e;
+  --border: #ded6c9;
+  --accent: #3d7ab6;
+  --accent-soft: #e5edf6;
+
+  /* 폴더 색. 앞면/뒷면/테두리로 나눠야 입체로 보입니다. */
+  --folder: #7fadd8;
+  --folder-back: #9cc3e6;
+  --folder-edge: #6a9ac9;
+
+  /* 손그림(달력)에 쓰는 잉크와 종이 */
+  --ink: #211d1a;
+  --paper: #fdfcf8;
 }
 
 @theme inline {
@@ -21,17 +31,26 @@
   --color-accent-soft: var(--accent-soft);
   --font-mono: var(--font-geist-mono);
   --font-cute: var(--font-cute);
+  --font-display: var(--font-display);
+  --font-script: var(--font-script);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0c0a09;
-    --surface: #17140f;
-    --foreground: #f5f5f4;
-    --muted: #a8a29e;
-    --border: #2b2724;
-    --accent: #fb923c;
-    --accent-soft: #241b13;
+    --background: #17150f;
+    --surface: #211d18;
+    --foreground: #f0e9df;
+    --muted: #a89c8e;
+    --border: #332d26;
+    --accent: #8fbbe6;
+    --accent-soft: #1c2733;
+
+    --folder: #5c88b5;
+    --folder-back: #6f9cc7;
+    --folder-edge: #48719c;
+
+    --ink: #efe9df;
+    --paper: #1d1a16;
   }
 }
 
@@ -184,56 +203,6 @@ article [data-image-grid] img {
   border-radius: 0.5rem;
 }
 
-/* 상단 배너: 폭죽과 별 */
-@keyframes banner-burst {
-  0% {
-    transform: scale(0.15);
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  55% {
-    transform: scale(1);
-    opacity: 0.95;
-  }
-  85%,
-  100% {
-    transform: scale(1.12);
-    opacity: 0;
-  }
-}
-
-@keyframes banner-twinkle {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 0.85;
-  }
-}
-
-.banner-firework {
-  animation: banner-burst 4.2s ease-out infinite;
-  opacity: 0;
-}
-
-.banner-star {
-  animation: banner-twinkle 3.5s ease-in-out infinite;
-}
-
-/* 움직임을 불편해하는 사용자를 위해 정지 상태로 보여줍니다. */
-@media (prefers-reduced-motion: reduce) {
-  .banner-firework {
-    animation: none;
-    opacity: 0.9;
-  }
-  .banner-star {
-    animation: none;
-  }
-}
-
 /* 사진 설명(캡션) */
 figure {
   margin: 1.75rem 0;
@@ -292,4 +261,95 @@ figcaption {
   .eq-bar {
     animation: none;
   }
+}
+
+/* ─────────────────────────────────────────────
+   홈 바탕화면
+   좁은 화면에서는 아이콘을 가운데로 모아 위에서 아래로 흘리고,
+   넓은 화면에서만 좌표(--x, --y)대로 흩뿌립니다.
+   ───────────────────────────────────────────── */
+
+.desktop-item {
+  width: var(--w);
+}
+
+/* 좁은 화면: 제목 아래로 아이콘이 줄줄이 놓입니다. */
+.desktop-scatter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2.5rem 1.75rem;
+  margin-top: 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  .desktop {
+    /* 화면을 꽉 채우되(헤더 높이만큼 뺌) 너무 길어지지는 않게. */
+    height: min(80vh, 720px);
+    min-height: 580px;
+  }
+
+  /* 아이콘 묶음은 자리를 차지하지 않고, 아이콘 하나하나가 바탕화면에 직접 놓입니다. */
+  .desktop-scatter {
+    display: contents;
+  }
+
+  .desktop-item {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+  }
+}
+
+/* ─────────────────────────────────────────────
+   손으로 그린 상자 (달력)
+   네 모서리의 반지름을 제각각 크게 벌리면 선이 흔들린 것처럼 보입니다.
+   ───────────────────────────────────────────── */
+
+.doodle {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 26px 10px 30px 12px / 12px 30px 10px 26px;
+}
+
+.doodle-btn {
+  border: 2px solid var(--ink);
+  border-radius: 24px 8px 22px 10px / 10px 22px 8px 24px;
+  padding: 0.1rem 0.7rem;
+  line-height: 1.6;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.doodle-btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.doodle-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 7 / 6;
+  border: 2px solid var(--ink);
+  transition: background-color 0.15s ease;
+}
+
+/* 칸마다 모서리를 다르게 굴려서 손으로 그린 티를 냅니다. */
+.doodle-cell-a {
+  border-radius: 22px 6px 18px 8px / 8px 18px 6px 22px;
+}
+.doodle-cell-b {
+  border-radius: 8px 20px 7px 24px / 20px 7px 24px 8px;
+}
+.doodle-cell-c {
+  border-radius: 18px 10px 24px 6px / 10px 24px 6px 18px;
+}
+
+/* 글을 쓴 날은 눌러서 그 글로 갈 수 있습니다. */
+a.doodle-cell:hover {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
 }

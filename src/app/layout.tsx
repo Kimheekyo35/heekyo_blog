@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import {
   Geist_Mono,
   Gaegu,
+  Archivo,
+  Instrument_Serif,
   Nanum_Myeongjo,
   Gowun_Batang,
   Gothic_A1,
@@ -21,6 +23,21 @@ const geistMono = Geist_Mono({
 const gaegu = Gaegu({
   variable: '--font-cute',
   weight: '400',
+  subsets: ['latin'],
+})
+
+// 홈 바탕화면의 큰 제목에 쓰는 굵은 산세리프.
+const archivo = Archivo({
+  variable: '--font-display',
+  weight: ['800'],
+  subsets: ['latin'],
+})
+
+// 굵은 제목 위에 겹치는 흘림체. 기울임만 씁니다.
+const instrumentSerif = Instrument_Serif({
+  variable: '--font-script',
+  weight: '400',
+  style: 'italic',
   subsets: ['latin'],
 })
 
@@ -61,11 +78,11 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="ko"
-      className={`${geistMono.variable} ${gaegu.variable} ${postFonts} h-full antialiased`}
+      className={`${geistMono.variable} ${gaegu.variable} ${archivo.variable} ${instrumentSerif.variable} ${postFonts} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <SiteHeader />
-        <main className="flex-1 w-full max-w-5xl mx-auto px-5 py-12">{children}</main>
+        <main className="flex-1 w-full">{children}</main>
         <footer className="border-t border-border mt-8">
           <div className="max-w-5xl mx-auto px-5 py-8 flex items-center justify-between text-sm text-muted">
             <span>© {new Date().getFullYear()} KIM HEEKYO</span>

@@ -29,8 +29,8 @@ export async function ProfileCard() {
 
   return (
     <aside className="overflow-hidden rounded-2xl border border-border bg-surface">
-      {/* 사진 뒤로 깔리는 밤하늘 띠 — 헤더와 같은 색 계열로 맞췄습니다. */}
-      <div className="h-16 bg-gradient-to-br from-[#221850] via-[#3d2a63] to-[#c2410c]/70" />
+      {/* 사진 뒤로 깔리는 띠 — 폴더 색에서 가져왔습니다. */}
+      <div className="h-16 bg-[linear-gradient(115deg,var(--folder-back),var(--folder),var(--accent))]" />
 
       <div className="px-6 pb-6">
         <div className="-mt-10 mb-4 flex justify-center">
@@ -99,7 +99,7 @@ export async function ProfileCard() {
 /** 목록 화면에서 왼쪽에 소개, 오른쪽에 글을 놓는 배치. */
 export function WithProfileSidebar({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col lg:flex-row gap-10">
+    <div id="about" className="flex scroll-mt-24 flex-col gap-10 lg:flex-row">
       {/* 좁은 화면에서는 글이 먼저 보이도록 소개를 아래로 내립니다. */}
       <div className="order-2 lg:order-1 lg:w-64 lg:shrink-0">
         <div className="lg:sticky lg:top-32">

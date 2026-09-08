@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import { auth, signIn, signOut } from '@/auth'
-import { CATEGORIES } from '@/lib/categories'
-import { CategoryNav } from '@/components/category-nav'
-import { HeaderScene } from '@/components/header-scene'
+import { FolderIcon } from '@/components/desktop/icons'
 
 export async function SiteHeader() {
   const session = await auth()
@@ -10,70 +8,58 @@ export async function SiteHeader() {
   const isAdmin = user?.role === 'ADMIN'
 
   return (
-    // 밤하늘 장식을 깔아야 해서 라이트/다크 모드와 무관하게 항상 어둡습니다.
-    // 배경 그라데이션은 SVG가 아니라 헤더 자체에 줍니다. SVG 안에만 그리면
-    // 그림이 닿지 않는 좌우 끝에서 배경색이 뚝 끊겨 경계선이 보입니다.
-    <header className="sticky top-0 z-30 relative overflow-hidden text-white bg-gradient-to-b from-[#151129] via-[#221850] to-[#3d2a63]">
-      {/* 폭죽과 사람은 헤더 전체 폭에 걸쳐 놓습니다. */}
-      <HeaderScene />
+    // 바탕화면 위에 얹힌 메뉴 막대. 배경이 비쳐야 아래 아이콘이 지나가는 게 보입니다.
+    // 이름과 카테고리 줄은 없앴습니다. 홈으로 가는 길은 왼쪽 폴더 아이콘입니다.
+    <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-4 px-5">
+        <Link
+          href="/"
+          aria-label="홈으로"
+          className="w-6 shrink-0 transition-transform duration-200 hover:-translate-y-0.5"
+        >
+          <FolderIcon />
+        </Link>
 
-      <div className="relative max-w-5xl mx-auto px-5">
-        <div>
-          <div className="h-16 flex items-center justify-between gap-4">
-            <Link href="/" className="group">
-              {/* 영문 대문자는 자간을 벌려야 이름처럼 읽힙니다. */}
-              <span className="text-lg font-bold tracking-[0.18em] text-white group-hover:text-accent transition-colors">
-                KIM HEEKYO
-              </span>
+        <nav className="flex items-center gap-2.5 text-sm">
+          {isAdmin && (
+            <Link
+              href="/write"
+              className="rounded-full bg-accent px-3.5 py-1.5 font-medium text-white transition-opacity hover:opacity-90"
+            >
+              글쓰기
             </Link>
+          )}
 
-            <nav className="flex items-center gap-2 text-sm">
-              {isAdmin && (
-                <Link
-                  href="/write"
-                  className="px-3.5 py-1.5 rounded-full bg-accent text-white font-medium hover:opacity-90 transition-opacity"
-                >
-                  글쓰기
-                </Link>
-              )}
-
-              {user ? (
-                <div className="flex items-center gap-2.5 pl-1">
-                  <span className="text-white/60 hidden sm:inline">{user.name ?? '익명'}</span>
-                  <form
-                    action={async () => {
-                      'use server'
-                      await signOut({ redirectTo: '/' })
-                    }}
-                  >
-                    <button
-                      type="submit"
-                      className="text-white/60 hover:text-white transition-colors"
-                    >
-                      로그아웃
-                    </button>
-                  </form>
-                </div>
-              ) : (
-                <form
-                  action={async () => {
-                    'use server'
-                    await signIn('naver')
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className="px-3.5 py-1.5 rounded-full bg-[#03C75A] text-white font-medium hover:opacity-90 transition-opacity"
-                  >
-                    네이버 로그인
-                  </button>
-                </form>
-              )}
-            </nav>
-          </div>
-
-          <CategoryNav categories={CATEGORIES} />
-        </div>
+          {user ? (
+            <div className="flex items-center gap-2.5 pl-1">
+              <span className="hidden text-muted sm:inline">{user.name ?? '익명'}</span>
+              <form
+                action={async () => {
+                  'use server'
+                  await signOut({ redirectTo: '/' })
+                }}
+              >
+                <button type="submit" className="text-muted transition-colors hover:text-foreground">
+                  로그아웃
+                </button>
+              </form>
+            </div>
+          ) : (
+            <form
+              action={async () => {
+                'use server'
+                await signIn('naver')
+              }}
+            >
+              <button
+                type="submit"
+                className="rounded-full bg-[#03C75A] px-3.5 py-1.5 font-medium text-white transition-opacity hover:opacity-90"
+              >
+                네이버 로그인
+              </button>
+            </form>
+          )}
+        </nav>
       </div>
     </header>
   )
