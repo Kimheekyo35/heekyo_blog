@@ -145,15 +145,44 @@ export function ProfileWindow({
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Who Am I — 소개 보기"
-          className="block w-11 cursor-pointer lg:w-14"
+          className="relative block w-11 cursor-pointer lg:w-14"
         >
-          <StickFigure />
+          <Mood />
+          {/* 몸만 방향을 바꿉니다(globals.css의 .stroll-face). */}
+          <span className="stroll-face block">
+            <StickFigure />
+          </span>
         </button>
       </div>
 
       {/* 걸어 다니는 사람 안에서는 fixed가 화면 기준이 아닐 수 있어 body로 빼서 그립니다. */}
       {open && createPortal(window_, document.body)}
     </>
+  )
+}
+
+/** 머리 위에 떠오르는 것들. 5초마다 차례로 바뀝니다. */
+const MOODS = ['♪', '?', '💭', '☕', '✨', '!', '🎧', '📖']
+
+const MOOD_EVERY = 5000
+
+function Mood() {
+  const [at, setAt] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => setAt((i) => (i + 1) % MOODS.length), MOOD_EVERY)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <span
+      // key가 바뀌면 다시 그려지면서 뿅 하고 떠오르는 움직임이 다시 재생됩니다.
+      key={at}
+      aria-hidden
+      className="mood-pop pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 text-lg leading-none"
+    >
+      {MOODS[at]}
+    </span>
   )
 }
 

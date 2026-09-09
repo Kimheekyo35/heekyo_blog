@@ -499,25 +499,59 @@ a.doodle-cell:hover {
   animation: stroll 42s linear infinite;
 }
 
-.stroll:hover {
+/* 가리키면 멈춥니다. 몸의 방향 전환도 같이 멈춰야 어색하지 않습니다. */
+.stroll:hover,
+.stroll:hover .stroll-face {
   animation-play-state: paused;
 }
 
 @keyframes stroll {
   0% {
-    transform: translateX(0) scaleX(1);
-  }
-  49.9% {
-    transform: translateX(var(--stroll-span)) scaleX(1);
+    translate: 0 0;
   }
   50% {
-    transform: translateX(var(--stroll-span)) scaleX(-1);
-  }
-  99.9% {
-    transform: translateX(0) scaleX(-1);
+    translate: var(--stroll-span) 0;
   }
   100% {
-    transform: translateX(0) scaleX(1);
+    translate: 0 0;
+  }
+}
+
+/* 방향 전환은 몸에만 겁니다. 머리 위 이모지까지 뒤집히면 글자가 거울처럼 보입니다. */
+.stroll-face {
+  animation: stroll-face 42s step-end infinite;
+}
+
+@keyframes stroll-face {
+  0% {
+    scale: 1 1;
+  }
+  50% {
+    scale: -1 1;
+  }
+  100% {
+    scale: 1 1;
+  }
+}
+
+/* 머리 위에 뿅 하고 떠오르는 이모지 */
+.mood-pop {
+  animation: mood-pop 0.45s ease-out;
+}
+
+@keyframes mood-pop {
+  0% {
+    opacity: 0;
+    translate: 0 6px;
+    scale: 0.6;
+  }
+  60% {
+    scale: 1.1;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
   }
 }
 
@@ -579,9 +613,11 @@ a.doodle-cell:hover {
 /* 움직임을 불편해하는 사용자에게는 한자리에 서 있게 합니다. */
 @media (prefers-reduced-motion: reduce) {
   .stroll,
+  .stroll-face,
   .stick-body,
   .stick-arm,
-  .stick-leg {
+  .stick-leg,
+  .mood-pop {
     animation: none;
   }
 }
