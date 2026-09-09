@@ -1,15 +1,22 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import type { CSSProperties } from 'react'
 import { CATEGORIES } from '@/lib/categories'
 import { firstImage } from '@/lib/posts'
-import type { DesktopItemRow } from '@/lib/desktop'
+import type { DesktopItemRow, Spots } from '@/lib/desktop'
 import { removeDesktopItem } from '@/lib/actions/desktop'
 import type { PostListItem } from '@/components/post-list'
 import type { Profile } from '@/lib/profile'
 import { BlotIcon } from '@/components/blot-icon'
 import { FolderIcon, DocIcon, PencilIcon } from '@/components/desktop/icons'
-import { lift, shadow, photo, tile, label as labelClass, labelFile } from '@/components/desktop/styles'
+import {
+  lift,
+  shadow,
+  photo,
+  tile,
+  label as labelClass,
+  labelFile,
+} from '@/components/desktop/styles'
+import { DesktopSurface, DesktopItem } from '@/components/desktop/desktop-surface'
 import { DesktopAdder } from '@/components/desktop/desktop-adder'
 import { ProfileWindow } from '@/components/desktop/profile-window'
 import {
@@ -22,37 +29,11 @@ import {
 /*
   홈 = 바탕화면. 이 화면이 전부이고, 글은 폴더나 달력을 거쳐 찾아갑니다.
   넓은 화면에서는 아이콘이 사방에 흩어져 있고, 좁은 화면에서는 가운데로 모여
-  위에서 아래로 쌓입니다. 흩뿌리는 좌표(--x, --y)는 바탕화면 크기의 비율이라
-  창 크기가 달라져도 배치가 그대로 유지됩니다. globals.css의 .desktop-item 참고.
-  가운데 위쪽은 제목이 차지하므로, 아이콘은 그 바깥에만 놓습니다.
+  위에서 아래로 쌓입니다(globals.css의 .desktop-item 참고).
+
+  아래 좌표는 "처음 놓이는 자리"일 뿐입니다. 주인이 끌어서 옮기면 그 자리가
+  DesktopSpot에 저장되고, 다음부터는 저장된 자리가 이깁니다.
 */
-
-type Placement = {
-  /** 바탕화면 안에서의 위치 (아이콘 가운데 기준). */
-  x: string
-  y: string
-  /** 살짝 비뚤어진 각도. 반듯하게만 놓으면 늘어놓은 느낌이 안 납니다. */
-  r?: number
-  /** 아이콘 폭. 좁은 화면에서도 이 폭을 씁니다. */
-  w?: string
-}
-
-function DesktopItem({
-  x,
-  y,
-  r = 0,
-  w = '7.5rem',
-  children,
-}: Placement & { children: React.ReactNode }) {
-  return (
-    <div
-      className="desktop-item"
-      style={{ '--x': x, '--y': y, '--r': `${r}deg`, '--w': w } as CSSProperties}
-    >
-      {children}
-    </div>
-  )
-}
 
 function CategoryFolder({ slug, label }: { slug: string; label: string }) {
   return (
@@ -181,6 +162,7 @@ export function Desktop({
   showProfile,
   isAdmin,
   items,
+  spots,
   today,
   calendarPosts,
 }: {
@@ -190,17 +172,24 @@ export function Desktop({
   showProfile: boolean
   isAdmin: boolean
   items: DesktopItemRow[]
+  spots: Spots
   today: string
   calendarPosts: CalendarPost[]
 }) {
   // 파일로 띄울 글은 최신 네 개까지만. 나머지는 폴더와 달력에서 찾습니다.
   const files = posts.slice(0, 4)
 
+  /** 저장해 둔 자리가 있으면 그 자리로, 없으면 처음 정해 둔 자리로. */
+  const at = (key: string, x: number, y: number) => ({ spotKey: key, ...(spots[key] ?? { x, y }) })
+
   return (
     <CalendarProvider today={today} posts={calendarPosts}>
-      <section className="desktop relative w-full px-5 pt-6 pb-10 lg:px-10 lg:py-0">
+      <DesktopSurface
+        editable={isAdmin}
+        className="desktop relative w-full px-5 pt-6 pb-10 lg:px-10 lg:py-0"
+      >
         {/* 제목은 맨 위 가운데. 큰 폴더가 글자 아랫부분을 살짝 덮습니다. */}
-        <DesktopItem x="50%" y="27%" w="min(42rem, 84vw)">
+        <DesktopItem {...at('title', 50, 27)} width="min(42rem, 84vw)">
           <div className="flex select-none flex-col items-center">
             <h1 className="text-center font-display text-[clamp(3.4rem,14vw,9rem)] font-extrabold leading-[0.85] tracking-[-0.05em]">
               heekyo
@@ -222,29 +211,29 @@ export function Desktop({
 
         {/* 흩어진 아이콘들 — 좁은 화면에서는 여기서부터 아래로 쌓입니다. */}
         <div className="desktop-scatter">
-          <DesktopItem x="9%" y="37%" r={-3}>
+          <DesktopItem {...at(`folder:${CATEGORIES[0].slug}`, 9, 37)} rotate={-3}>
             <CategoryFolder {...CATEGORIES[0]} />
           </DesktopItem>
-          <DesktopItem x="88%" y="18%" r={3}>
+          <DesktopItem {...at(`folder:${CATEGORIES[1].slug}`, 88, 18)} rotate={3}>
             <CategoryFolder {...CATEGORIES[1]} />
           </DesktopItem>
-          <DesktopItem x="12%" y="77%" r={2}>
+          <DesktopItem {...at(`folder:${CATEGORIES[2].slug}`, 12, 77)} rotate={2}>
             <CategoryFolder {...CATEGORIES[2]} />
           </DesktopItem>
 
-          <DesktopItem x="16%" y="12%" r={-5} w="4.6rem">
+          <DesktopItem {...at('tile:blot', 16, 12)} rotate={-5} width="4.6rem">
             <Tile label="blot — 글을 대신 요약해 주는 로봇">
               <BlotIcon className="w-[58%] text-accent" />
             </Tile>
           </DesktopItem>
 
           {/* 손그림 달력 — 글 쓴 날을 누르면 그날 글이 나옵니다. */}
-          <DesktopItem x="84%" y="68%" r={-2} w="6.5rem">
+          <DesktopItem {...at('file:calendar', 84, 68)} rotate={-2} width="6.5rem">
             <CalendarFile />
           </DesktopItem>
 
           {profile.musicTitle && (
-            <DesktopItem x="20%" y="63%" r={4} w="4.6rem">
+            <DesktopItem {...at('tile:music', 20, 63)} rotate={4} width="4.6rem">
               <Tile
                 label={`지금 듣는 곡 — ${profile.musicTitle}`}
                 href={profile.musicUrl ?? undefined}
@@ -256,48 +245,49 @@ export function Desktop({
           )}
 
           {showProfile && (
-            <DesktopItem x="93%" y="45%" r={-4} w="4.6rem">
+            <DesktopItem {...at('tile:profile', 93, 45)} rotate={-4} width="4.6rem">
               <ProfileWindow profile={profile} hobbies={hobbies} isAdmin={isAdmin} />
             </DesktopItem>
           )}
 
           {isAdmin && (
-            <DesktopItem x="6%" y="58%" r={5} w="4.6rem">
+            <DesktopItem {...at('tile:write', 6, 58)} rotate={5} width="4.6rem">
               <Tile label="새 글 쓰기" href="/write">
                 <PencilIcon className="w-[52%] text-accent" />
               </Tile>
             </DesktopItem>
           )}
 
-          {files[0] && (
-            <DesktopItem x="64%" y="66%" r={-2} w="7rem">
-              <PostFile post={files[0]} />
-            </DesktopItem>
-          )}
-          {files[1] && (
-            <DesktopItem x="35%" y="68%" r={-1} w="7rem">
-              <PostFile post={files[1]} portrait />
-            </DesktopItem>
-          )}
-          {files[2] && (
-            <DesktopItem x="48%" y="85%" r={2} w="7rem">
-              <PostFile post={files[2]} />
-            </DesktopItem>
-          )}
-          {files[3] && (
-            <DesktopItem x="72%" y="86%" r={-1} w="7rem">
-              <PostFile post={files[3]} />
-            </DesktopItem>
-          )}
+          {files.map((post, i) => {
+            // 처음 자리는 넷을 골고루 흩어 놓고, 옮기면 그 자리를 기억합니다.
+            const spread = [
+              { x: 64, y: 66, rotate: -2 },
+              { x: 35, y: 68, rotate: -1 },
+              { x: 48, y: 85, rotate: 2 },
+              { x: 72, y: 86, rotate: -1 },
+            ][i]
+
+            return (
+              <DesktopItem
+                key={post.id}
+                {...at(`post:${post.slug}`, spread.x, spread.y)}
+                rotate={spread.rotate}
+                width="7rem"
+              >
+                <PostFile post={post} portrait={i === 1} />
+              </DesktopItem>
+            )
+          })}
 
           {/* 주인이 올려 둔 사진과 파일 */}
           {items.map((item) => (
             <DesktopItem
               key={item.id}
-              x={`${item.x}%`}
-              y={`${item.y}%`}
-              r={item.rotate}
-              w={item.kind === 'image' ? '7rem' : '6.5rem'}
+              spotKey={`item:${item.id}`}
+              x={item.x}
+              y={item.y}
+              rotate={item.rotate}
+              width={item.kind === 'image' ? '7rem' : '6.5rem'}
             >
               <UserItem item={item} isAdmin={isAdmin} />
             </DesktopItem>
@@ -305,7 +295,7 @@ export function Desktop({
         </div>
 
         {isAdmin && <DesktopAdder />}
-      </section>
+      </DesktopSurface>
     </CalendarProvider>
   )
 }

@@ -1,12 +1,12 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { addDesktopItem } from '@/lib/actions/desktop'
+import { addDesktopItem, resetDesktopSpots } from '@/lib/actions/desktop'
 import { uploadImage } from '@/lib/upload-client'
 
 /**
  * 바탕화면에 사진이나 파일을 올리는 버튼. 블로그 주인에게만 보입니다.
- * 놓을 자리는 서버가 빈 곳으로 골라 줍니다(src/lib/desktop.ts).
+ * 새로 올린 것은 빈자리에 놓이고, 그다음부터는 끌어서 원하는 곳에 두면 됩니다.
  */
 export function DesktopAdder() {
   const [open, setOpen] = useState(false)
@@ -62,7 +62,10 @@ export function DesktopAdder() {
     <div className="fixed bottom-5 right-5 z-40 lg:absolute lg:bottom-6 lg:right-8">
       {open && (
         <div className="mb-3 w-64 rounded-2xl border border-border bg-surface p-4 shadow-xl shadow-black/10">
-          <p className="mb-3 text-sm font-semibold">바탕화면에 올리기</p>
+          <p className="mb-1 text-sm font-semibold">바탕화면에 올리기</p>
+          <p className="mb-3 text-xs leading-relaxed text-muted">
+            올린 다음 아이콘을 끌어서 원하는 자리에 놓으세요. 폴더와 글도 같이 옮길 수 있습니다.
+          </p>
 
           <input
             ref={fileInput}
@@ -90,7 +93,7 @@ export function DesktopAdder() {
               onClick={() => fileInput.current?.click()}
               className="flex-1 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {working ? '올리는 중…' : '사진 고르기'}
+              {working ? '올리는 중…' : '사진 추가'}
             </button>
             <button
               type="button"
@@ -98,11 +101,20 @@ export function DesktopAdder() {
               onClick={onAddNote}
               className="rounded-lg border border-border px-3 py-2 text-sm transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
             >
-              빈 파일
+              파일 추가
             </button>
           </div>
 
           {error && <p className="mt-2.5 text-xs text-red-600">{error}</p>}
+
+          <button
+            type="button"
+            disabled={working}
+            onClick={() => startTransition(async () => void (await resetDesktopSpots()))}
+            className="mt-3 w-full border-t border-border pt-3 text-xs text-muted transition-colors hover:text-foreground disabled:opacity-50"
+          >
+            아이콘 자리 처음으로 되돌리기
+          </button>
         </div>
       )}
 
@@ -117,7 +129,7 @@ export function DesktopAdder() {
         <span aria-hidden className="text-base leading-none">
           {open ? '×' : '+'}
         </span>
-        {open ? '닫기' : '배경에 올리기'}
+        {open ? '닫기' : '사진·파일 추가'}
       </button>
     </div>
   )

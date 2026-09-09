@@ -162,3 +162,14 @@ model DesktopItem {
   rotate    Float    @default(0)
   createdAt DateTime @default(now())
 }
+
+// 바탕화면 아이콘을 주인이 끌어다 놓은 자리.
+// 폴더·타일·글 파일처럼 원래 자리가 정해져 있는 아이콘만 여기에 기록합니다.
+// (주인이 올린 사진·파일은 DesktopItem 자신이 x, y를 들고 있습니다.)
+// key 예: "title", "folder:daily", "tile:blot", "post:비-오는-날의-기록"
+model DesktopSpot {
+  key       String   @id
+  x         Float
+  y         Float
+  updatedAt DateTime @updatedAt
+}

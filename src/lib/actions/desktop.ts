@@ -9,7 +9,7 @@ const LABEL_MAX = 30
 
 export type DesktopResult = { error: string } | { ok: true }
 
-/** 바탕화면에 사진이나 파일을 하나 올립니다. 자리는 빈 곳으로 알아서 정합니다. */
+/** 바탕화면에 사진이나 파일을 하나 올립니다. 자리는 빈 곳으로 잡아 두고, 뒤에 끌어서 옮깁니다. */
 export async function addDesktopItem(input: {
   kind: 'image' | 'note'
   imageUrl?: string | null
@@ -48,5 +48,45 @@ export async function removeDesktopItem(id: string) {
   if (session?.user?.role !== 'ADMIN') return
 
   await db.desktopItem.delete({ where: { id } }).catch(() => null)
+  revalidatePath('/')
+}
+
+/**
+ * 아이콘을 끌어다 놓은 자리를 기록합니다.
+ * key가 "item:…"이면 주인이 올린 것이라 그 줄을 직접 고치고,
+ * 나머지(폴더·타일·글 파일)는 DesktopSpot에 자리만 따로 적어 둡니다.
+ */
+export async function moveDesktopIcon(key: string, x: number, y: number): Promise<DesktopResult> {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') return { error: '권한이 없습니다.' }
+
+  if (!key || key.length > 200) return { error: '잘못된 아이콘입니다.' }
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return { error: '잘못된 자리입니다.' }
+
+  // 화면 밖으로 나가 다시 잡을 수 없게 되는 것을 막습니다.
+  const safeX = Math.min(98, Math.max(2, x))
+  const safeY = Math.min(97, Math.max(3, y))
+
+  if (key.startsWith('item:')) {
+    const id = key.slice('item:'.length)
+    await db.desktopItem.update({ where: { id }, data: { x: safeX, y: safeY } }).catch(() => null)
+  } else {
+    await db.desktopSpot.upsert({
+      where: { key },
+      create: { key, x: safeX, y: safeY },
+      update: { x: safeX, y: safeY },
+    })
+  }
+
+  revalidatePath('/')
+  return { ok: true }
+}
+
+/** 옮겨 둔 자리를 모두 지워 처음 배치로 되돌립니다. 올린 사진·파일은 그대로 둡니다. */
+export async function resetDesktopSpots() {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') return
+
+  await db.desktopSpot.deleteMany()
   revalidatePath('/')
 }

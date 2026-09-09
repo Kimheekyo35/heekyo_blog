@@ -374,3 +374,27 @@ a.doodle-cell:hover {
 .doodle-link:hover {
   background: color-mix(in srgb, var(--ink) 12%, transparent);
 }
+
+/* 주인이 아이콘을 끌어 옮길 때 (넓은 화면에서만) */
+@media (min-width: 1024px) {
+  .desktop-item-editable {
+    cursor: grab;
+    /* 손가락으로 끌 때 화면이 같이 밀리지 않도록 */
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .desktop-item-editable:hover {
+    outline: 2px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+    outline-offset: 6px;
+    border-radius: 8px;
+  }
+
+  .desktop-item-dragging {
+    cursor: grabbing;
+    z-index: 20;
+    /* 끌고 있는 아이콘이 다른 것 위로 떠 보이게 */
+    filter: drop-shadow(0 14px 18px rgba(58, 42, 34, 0.25));
+  }
+}

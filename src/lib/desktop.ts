@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
   바탕화면에 주인이 올린 사진·파일이 놓이는 자리.
   아이콘을 새로 올릴 때마다 앞에서부터 빈자리를 채웁니다.
   기본 아이콘(폴더·타일·글 파일)이 이미 차지한 곳과 가운데 제목은 피해 둔 좌표입니다.
+  올린 뒤에는 주인이 끌어서 아무 데나 옮길 수 있습니다.
 */
 export type Slot = { x: number; y: number; rotate: number }
 
@@ -52,4 +53,12 @@ export function findDesktopItems(): Promise<DesktopItemRow[]> {
     orderBy: { createdAt: 'asc' },
     select: { id: true, kind: true, imageUrl: true, label: true, x: true, y: true, rotate: true },
   })
+}
+
+/** 주인이 끌어다 놓은 자리들. 기록이 없는 아이콘은 원래 자리에 그대로 놓입니다. */
+export type Spots = Record<string, { x: number; y: number }>
+
+export async function findDesktopSpots(): Promise<Spots> {
+  const rows = await db.desktopSpot.findMany({ select: { key: true, x: true, y: true } })
+  return Object.fromEntries(rows.map((row) => [row.key, { x: row.x, y: row.y }]))
 }
