@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { moveDesktopIcon } from '@/lib/actions/desktop'
+import { RemoveButton } from '@/components/desktop/remove-button'
 
 /*
   바탕화면과, 그 위에 놓인 아이콘 하나.
@@ -58,6 +59,7 @@ export function DesktopItem({
   rotate = 0,
   width = '7.5rem',
   remove,
+  removeHint = '바탕화면에서 치울까요? 나중에 다시 꺼낼 수 있어요.',
   extra,
   children,
 }: {
@@ -71,6 +73,8 @@ export function DesktopItem({
   width?: string
   /** 이 아이콘을 바탕화면에서 치우는 방법. 주인에게만 × 단추로 보입니다. */
   remove?: () => Promise<void>
+  /** 치우기 전에 한 번 더 물어볼 때 보여 줄 한 줄. */
+  removeHint?: string
   /** 아이콘 모서리에 같이 붙일 것(폴더 색 단추 등). 주인에게만 보입니다. */
   extra?: React.ReactNode
   children: React.ReactNode
@@ -175,18 +179,9 @@ export function DesktopItem({
         )}
 
         {editable && remove && (
-          <form
-            action={remove}
-            className="absolute -right-2 -top-2 z-10 opacity-0 transition-opacity focus-within:opacity-100 group-hover/icon:opacity-100"
-          >
-            <button
-              type="submit"
-              title="바탕화면에서 치우기"
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-xs leading-none text-background shadow"
-            >
-              ×
-            </button>
-          </form>
+          <div className="opacity-0 transition-opacity focus-within:opacity-100 group-hover/icon:opacity-100">
+            <RemoveButton remove={remove} hint={removeHint} />
+          </div>
         )}
       </div>
     </div>

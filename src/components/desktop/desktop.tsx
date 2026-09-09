@@ -250,6 +250,7 @@ export function Desktop({
                 {...at(key, spread.x, spread.y)}
                 rotate={spread.rotate}
                 remove={removeFolder.bind(null, folder.slug)}
+                removeHint={`'${folder.label}' 폴더를 지울까요? 안에 글이 있으면 지우지 않고 바탕화면에서만 감춥니다.`}
                 extra={
                   <>
                     <FolderColorPicker slug={folder.slug} color={folder.color} />
@@ -330,6 +331,11 @@ export function Desktop({
               rotate={item.rotate}
               width={item.kind === 'image' ? '7rem' : '6.5rem'}
               remove={removeDesktopItem.bind(null, item.id)}
+              removeHint={
+                item.kind === 'image'
+                  ? '이 사진을 바탕화면에서 지울까요? 다시 되돌릴 수 없습니다.'
+                  : '이 파일을 바탕화면에서 지울까요? 다시 되돌릴 수 없습니다.'
+              }
               extra={
                 <RenameButton
                   label={item.label}
