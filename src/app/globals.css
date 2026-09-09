@@ -621,3 +621,51 @@ a.doodle-cell:hover {
     animation: none;
   }
 }
+
+/* ── 손 흔드는 blot 로봇 ── */
+
+/* 숨 쉬듯 아주 조금 오르내립니다. */
+.blot-bob {
+  animation: blot-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes blot-bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -1.4px;
+  }
+}
+
+/* 어깨를 축으로 손을 흔들다가 잠깐 쉽니다. */
+.blot-arm {
+  transform-box: view-box;
+  transform-origin: 45px 42px;
+  animation: blot-wave 2.8s ease-in-out infinite;
+}
+
+@keyframes blot-wave {
+  0%,
+  62%,
+  100% {
+    rotate: 0deg;
+  }
+  8%,
+  28%,
+  48% {
+    rotate: -24deg;
+  }
+  18%,
+  38% {
+    rotate: 6deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blot-bob,
+  .blot-arm {
+    animation: none;
+  }
+}

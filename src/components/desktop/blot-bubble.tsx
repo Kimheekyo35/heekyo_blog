@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { BlotIcon } from '@/components/blot-icon'
+import { BlotRobot } from '@/components/desktop/blot-robot'
 import { tile } from '@/components/desktop/styles'
 
 /**
@@ -40,7 +41,7 @@ export function BlotBubble() {
         onClick={() => setOpen((v) => !v)}
         className={`${tile} transition-transform duration-200 hover:-translate-y-1`}
       >
-        <BlotIcon className="w-[58%] text-accent" />
+        <BlotRobot className="w-[78%]" />
       </button>
 
       {open && (
