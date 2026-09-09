@@ -294,7 +294,15 @@ export function Desktop({
           ))}
         </div>
 
-        {isAdmin && <DesktopAdder />}
+        {isAdmin && (
+          <>
+            {/* 주인에게만 보이는 안내. 좁은 화면은 끌기가 없으므로 숨깁니다. */}
+            <p className="pointer-events-none absolute bottom-7 left-10 z-10 hidden text-xs text-muted lg:block">
+              아이콘을 끌어서 자리를 옮길 수 있어요
+            </p>
+            <DesktopAdder />
+          </>
+        )}
       </DesktopSurface>
     </CalendarProvider>
   )
