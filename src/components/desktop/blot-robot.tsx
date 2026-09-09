@@ -40,8 +40,24 @@ export function BlotRobot({ className = 'w-full' }: { className?: string }) {
 
       <g className="blot-bob">
         {/* 다리 — 몸에 가려지도록 먼저 그립니다. */}
-        <rect x="24" y="45" width="7.5" height="14" rx="3.7" fill="url(#blot-limb-g)" />
-        <rect x="32.5" y="45" width="7.5" height="14" rx="3.7" fill="url(#blot-limb-g)" />
+        <rect
+          className="blot-leg blot-leg-back"
+          x="24"
+          y="45"
+          width="7.5"
+          height="14"
+          rx="3.7"
+          fill="url(#blot-limb-g)"
+        />
+        <rect
+          className="blot-leg"
+          x="32.5"
+          y="45"
+          width="7.5"
+          height="14"
+          rx="3.7"
+          fill="url(#blot-limb-g)"
+        />
 
         {/* 왼팔은 가만히 내려두어야 오른팔이 인사하는 게 눈에 들어옵니다. */}
         <g>

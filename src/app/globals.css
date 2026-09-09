@@ -665,9 +665,42 @@ a.doodle-cell:hover {
   }
 }
 
+/* 짧고 통통한 다리를 엉덩이 축으로 번갈아 흔듭니다. */
+.blot-leg {
+  transform-box: view-box;
+  transform-origin: 36.3px 46px;
+  animation: blot-step 0.62s ease-in-out infinite;
+}
+
+.blot-leg-back {
+  transform-origin: 27.7px 46px;
+  animation-name: blot-step-back;
+}
+
+@keyframes blot-step {
+  0%,
+  100% {
+    rotate: 10deg;
+  }
+  50% {
+    rotate: -10deg;
+  }
+}
+
+@keyframes blot-step-back {
+  0%,
+  100% {
+    rotate: -10deg;
+  }
+  50% {
+    rotate: 10deg;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .blot-bob,
-  .blot-arm {
+  .blot-arm,
+  .blot-leg {
     animation: none;
   }
 }

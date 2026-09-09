@@ -145,7 +145,9 @@ export function ProfileFigure({
         data-open={open ? 'true' : undefined}
       >
         <Mood />
-        <StickFigure />
+        <span className="stroll-face block">
+          <StickFigure />
+        </span>
       </button>
 
       {/* 걸어 다니는 사람 안에서는 fixed가 화면 기준이 아닐 수 있어 body로 빼서 그립니다. */}
@@ -172,7 +174,7 @@ function Mood() {
       // key가 바뀌면 다시 그려지면서 뿅 하고 떠오르는 움직임이 다시 재생됩니다.
       key={at}
       aria-hidden
-      className="stroll-face mood-pop pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 text-lg leading-none"
+      className="mood-pop pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 text-lg leading-none"
     >
       {MOODS[at]}
     </span>

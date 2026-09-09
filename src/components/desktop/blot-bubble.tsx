@@ -41,13 +41,16 @@ export function BlotBubble() {
         onClick={() => setOpen((v) => !v)}
         className="block w-14 cursor-pointer transition-transform duration-200 hover:-translate-y-1 lg:w-16"
       >
-        <BlotRobot />
+        {/* 몸만 방향을 바꿉니다. 말풍선은 밖에 있어 뒤집히지 않습니다. */}
+        <span className="stroll-face block">
+          <BlotRobot />
+        </span>
       </button>
 
       {open && (
         // 말풍선. 로봇 위에 뜨고, 꼬리가 로봇을 가리킵니다.
         <div
-          className="stroll-face absolute bottom-[calc(100%+0.7rem)] left-1/2 z-30 w-56 -translate-x-1/2 rounded-2xl border border-border bg-surface p-3.5 text-left shadow-xl shadow-black/10"
+          className="absolute bottom-[calc(100%+0.7rem)] left-1/2 z-30 w-56 -translate-x-1/2 rounded-2xl border border-border bg-surface p-3.5 text-left shadow-xl shadow-black/10"
           onPointerDown={(e) => e.stopPropagation()}
         >
           {/* 꼬리 — 테두리와 배경을 겹쳐 그려서 선이 이어져 보이게 합니다. */}
