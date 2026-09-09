@@ -13,6 +13,7 @@ import { uploadImage } from '@/lib/upload-client'
 export function DesktopAdder() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
+  const [tagline, setTagline] = useState('')
   const [color, setColor] = useState<FolderColorName>(DEFAULT_FOLDER_COLOR)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -28,6 +29,7 @@ export function DesktopAdder() {
     }
     setError('')
     setName('')
+    setTagline('')
     setOpen(false)
   }
 
@@ -38,7 +40,7 @@ export function DesktopAdder() {
       return
     }
     startTransition(async () => {
-      done(await addFolder({ label: name, color }))
+      done(await addFolder({ label: name, color, tagline }))
     })
   }
 
@@ -67,10 +69,10 @@ export function DesktopAdder() {
     <div className="fixed bottom-5 right-5 z-40 lg:absolute lg:bottom-6 lg:right-8">
       {open && (
         <div className="mb-3 w-64 rounded-2xl border border-border bg-surface p-4 shadow-xl shadow-black/10">
-          <p className="mb-1 text-sm font-semibold">바탕화면에 만들기</p>
+          <p className="mb-1 text-sm font-semibold">폴더 만들기</p>
           <p className="mb-3 text-xs leading-relaxed text-muted">
-            아래 이름은 폴더와 사진에 모두 쓰입니다. 만든 뒤에는 아이콘의 ✎ 로 언제든 고칠 수
-            있어요.
+            폴더는 글을 담는 분류입니다. 만들면 바탕화면에 놓이고, 글쓰기 화면의 분류에도 바로
+            나옵니다. 이름은 나중에 아이콘의 ✎ 로 고칠 수 있어요.
           </p>
 
           <input
@@ -87,9 +89,18 @@ export function DesktopAdder() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="이름 (예: 여행, 바다사진)"
+            placeholder="폴더 이름 (예: 여행)"
             maxLength={20}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+          />
+
+          {/* 폴더 화면 맨 위에 나오는 한 줄. 안 적어도 됩니다. */}
+          <input
+            value={tagline}
+            onChange={(e) => setTagline(e.target.value)}
+            placeholder="한 줄 설명 (선택)"
+            maxLength={80}
+            className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
           />
 
           {/* 새로 만들 폴더의 색. 이미 있는 폴더는 아이콘 옆 동그라미로 바꿉니다. */}

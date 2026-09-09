@@ -218,6 +218,7 @@ export function Desktop({
                     <FolderColorPicker slug={folder.slug} color={folder.color} />
                     <RenameButton
                       label={folder.label}
+                      tagline={folder.tagline}
                       rename={renameFolder.bind(null, folder.slug)}
                     />
                   </>

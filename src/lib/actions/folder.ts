@@ -89,14 +89,26 @@ export async function removeFolder(slug: string) {
   revalidatePath('/', 'layout')
 }
 
-/** 폴더 이름을 고칩니다. 주소(slug)는 그대로 두어서 이미 쓴 글의 분류가 흔들리지 않습니다. */
-export async function renameFolder(slug: string, label: string) {
+/**
+ * 폴더 이름과 한 줄 설명을 고칩니다.
+ * 주소(slug)는 그대로 두어서 이미 쓴 글의 분류가 흔들리지 않습니다.
+ */
+export async function renameFolder(slug: string, label: string, tagline?: string) {
   const session = await auth()
   if (session?.user?.role !== 'ADMIN') return
 
   const next = label.trim().slice(0, LABEL_MAX)
   if (!next) return
 
-  await db.folder.update({ where: { slug }, data: { label: next } }).catch(() => null)
+  await db.folder
+    .update({
+      where: { slug },
+      data: {
+        label: next,
+        ...(tagline === undefined ? {} : { tagline: tagline.trim().slice(0, 80) }),
+      },
+    })
+    .catch(() => null)
+
   revalidatePath('/', 'layout')
 }
