@@ -20,6 +20,7 @@ export default async function HomePage() {
     date: dateKey(post.publishedAt ?? post.createdAt),
     slug: post.slug,
     title: post.title,
+    category: post.category,
   }))
 
   return (

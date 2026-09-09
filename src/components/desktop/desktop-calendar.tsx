@@ -3,16 +3,36 @@
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import { createContext, useContext, useEffect, useState } from 'react'
+import { CATEGORIES, isCategorySlug } from '@/lib/categories'
 import { labelFile } from '@/components/desktop/styles'
 
 /*
   손으로 그린 느낌의 달력. 홈에서 글을 찾아가는 길입니다.
   달력.cal 파일이나 가운데 큰 폴더를 누르면 열리고,
-  글을 쓴 날(점이 찍힌 날)을 누르면 그날 쓴 글 목록이 달력 아래에 펼쳐집니다.
+  글을 쓴 날(점이 찍힌 날)을 누르면 그날 쓴 글이 폴더별로 나뉘어 펼쳐집니다.
   테두리의 흔들림은 globals.css의 .doodle-* 에서 모서리 반지름으로 냅니다.
 */
 
-export type CalendarPost = { date: string; slug: string; title: string }
+export type CalendarPost = {
+  date: string
+  slug: string
+  title: string
+  category: string | null
+}
+
+/** 하루치 글을 폴더(카테고리)별로 나눕니다. 순서는 카테고리 목록을 따르고, 없는 폴더는 건너뜁니다. */
+function groupByFolder(posts: CalendarPost[]) {
+  const groups: { label: string; posts: CalendarPost[] }[] = CATEGORIES.map((category) => ({
+    label: category.label as string,
+    posts: posts.filter((post) => post.category === category.slug),
+  })).filter((group) => group.posts.length > 0)
+
+  // 어느 폴더에도 없는 글(옛 카테고리 등)은 맨 끝에 따로 둡니다.
+  const rest = posts.filter((post) => !isCategorySlug(post.category))
+  if (rest.length > 0) groups.push({ label: '기타', posts: rest })
+
+  return groups
+}
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -76,7 +96,7 @@ export function CalendarProvider({
     else byDay.set(post.date, [post])
   }
 
-  const pickedPosts = picked ? (byDay.get(picked) ?? []) : []
+  const pickedGroups = groupByFolder(picked ? (byDay.get(picked) ?? []) : [])
 
   const sheet = (
     <div
@@ -159,20 +179,29 @@ export function CalendarProvider({
         {/* 누른 날에 쓴 글 */}
         {picked && (
           <div className="mt-4 border-t-2 border-dashed border-[color:var(--ink)] pt-3">
-            <p className="mb-2 text-sm">{readableDate(picked)}에 쓴 글</p>
-            <ul className="space-y-1.5">
-              {pickedPosts.map((post) => (
-                <li key={post.slug}>
-                  <Link
-                    href={`/posts/${post.slug}`}
-                    onClick={() => setOpen(false)}
-                    className="doodle-link"
-                  >
-                    <span aria-hidden>·</span> {post.title}
-                  </Link>
-                </li>
+            <p className="mb-3 text-sm">{readableDate(picked)}에 쓴 글</p>
+
+            {/* 폴더별로 나눠서 보여 줍니다. 글이 없는 폴더는 아예 나오지 않습니다. */}
+            <div className="space-y-3">
+              {pickedGroups.map((group) => (
+                <div key={group.label}>
+                  <p className="doodle-folder-label">{group.label}</p>
+                  <ul className="mt-1.5 space-y-1.5 pl-1">
+                    {group.posts.map((post) => (
+                      <li key={post.slug}>
+                        <Link
+                          href={`/posts/${post.slug}`}
+                          onClick={() => setOpen(false)}
+                          className="doodle-link"
+                        >
+                          <span aria-hidden>·</span> {post.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
