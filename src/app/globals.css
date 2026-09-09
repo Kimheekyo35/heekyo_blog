@@ -642,7 +642,7 @@ a.doodle-cell:hover {
 /* 어깨를 축으로 손을 흔들다가 잠깐 쉽니다. */
 .blot-arm {
   transform-box: view-box;
-  transform-origin: 45px 42px;
+  transform-origin: 46px 31px;
   animation: blot-wave 2.8s ease-in-out infinite;
 }
 
