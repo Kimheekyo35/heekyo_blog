@@ -9,7 +9,7 @@ import { FolderColorPicker } from '@/components/desktop/folder-color-picker'
 import { RenameButton } from '@/components/desktop/rename-button'
 import type { PostListItem } from '@/components/post-list'
 import type { Profile } from '@/lib/profile'
-import { BlotIcon } from '@/components/blot-icon'
+import { BlotBubble } from '@/components/desktop/blot-bubble'
 import { FolderIcon, DocIcon, PencilIcon } from '@/components/desktop/icons'
 import {
   lift,
@@ -43,7 +43,7 @@ function CategoryFolder({ folder }: { folder: Folder }) {
     <Link href={`/category/${folder.slug}`} className={lift} draggable={false}>
       {/* folder-<색> 이 이 아이콘 안에서만 폴더 색을 바꿉니다 (globals.css). */}
       <FolderIcon className={`w-full folder-${folder.color} ${shadow}`} />
-      <span className={`${labelClass} text-[13px]`}>{folder.label}</span>
+      <span className={`${labelClass} text-[15px]`}>{folder.label}</span>
     </Link>
   )
 }
@@ -88,7 +88,7 @@ function UserItem({ item }: { item: DesktopItemRow }) {
       )}
 
       {item.label && (
-        <span className="mt-2 line-clamp-2 inline-block max-w-full rounded px-1.5 py-0.5 align-top font-mono text-[11px] leading-tight tracking-tight">
+        <span className="mt-2 line-clamp-2 inline-block max-w-full rounded px-1.5 py-0.5 align-top text-[14px] leading-tight">
           {item.label}
         </span>
       )}
@@ -207,7 +207,7 @@ export function Desktop({
     <CalendarProvider today={today} posts={calendarPosts} folders={folders}>
       <DesktopSurface
         editable={isAdmin}
-        className="desktop relative w-full px-5 pt-6 pb-10 lg:px-10 lg:py-0"
+        className="desktop relative w-full px-5 pt-6 pb-10 font-cute lg:px-10 lg:py-0"
       >
         {/* 제목은 맨 위 가운데. 큰 폴더가 글자 아랫부분을 살짝 덮습니다. 이건 치울 수 없습니다. */}
         <DesktopItem
@@ -268,9 +268,7 @@ export function Desktop({
 
           {!hidden('tile:blot') && (
             <DesktopItem {...at('tile:blot', 16, 12)} rotate={-5} width="4.6rem">
-              <Tile label="blot — 글을 대신 요약해 주는 로봇">
-                <BlotIcon className="w-[58%] text-accent" />
-              </Tile>
+              <BlotBubble />
             </DesktopItem>
           )}
 
@@ -351,7 +349,7 @@ export function Desktop({
         {isAdmin && (
           <>
             {/* 주인에게만 보이는 안내. 좁은 화면은 끌기가 없으므로 숨깁니다. */}
-            <p className="pointer-events-none absolute bottom-7 left-10 z-10 hidden text-xs text-muted lg:block">
+            <p className="pointer-events-none absolute bottom-7 left-10 z-10 hidden text-[15px] text-muted lg:block">
               아이콘을 끌어서 옮기고, × 를 눌러 치울 수 있어요
             </p>
             <DesktopAdder />

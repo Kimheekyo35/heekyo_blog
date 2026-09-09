@@ -480,3 +480,9 @@ a.doodle-cell:hover {
     --folder-edge: #65635e;
   }
 }
+
+/* 기울여 놓은 아이콘 안에 뜨는 글상자(말풍선·확인·이름칸)는 반듯하게 세웁니다.
+   --r 은 그 아이콘이 기울어진 각도입니다(.desktop-item). */
+.desktop-popover {
+  rotate: calc(-1 * var(--r, 0deg));
+}

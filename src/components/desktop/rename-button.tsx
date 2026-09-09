@@ -48,7 +48,7 @@ export function RenameButton({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-6 flex w-max items-center gap-1 rounded-xl border border-border bg-surface p-1.5 shadow-lg shadow-black/10">
+        <div className="desktop-popover absolute right-0 top-6 flex w-max items-center gap-1 rounded-xl border border-border bg-surface p-1.5 shadow-lg shadow-black/10">
           <input
             autoFocus
             value={value}

@@ -140,7 +140,7 @@ export function ProfileWindow({
             <PersonIcon />
           )}
         </span>
-        <span className={`${labelClass} text-[13px]`}>소개</span>
+        <span className={`${labelClass} text-[15px]`}>소개</span>
       </button>
 
       {/* 기울여 놓은 상자 안에서는 fixed가 화면 기준이 아니라서 body로 빼서 그립니다. */}

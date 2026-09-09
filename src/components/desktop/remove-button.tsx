@@ -31,7 +31,7 @@ export function RemoveButton({
       </button>
 
       {asking && (
-        <div className="absolute right-0 top-6 w-max max-w-[13rem] rounded-xl border border-border bg-surface p-2.5 text-left shadow-lg shadow-black/10">
+        <div className="desktop-popover absolute right-0 top-6 w-max max-w-[13rem] rounded-xl border border-border bg-surface p-2.5 text-left shadow-lg shadow-black/10">
           <p className="mb-2 whitespace-normal text-xs leading-relaxed">{hint}</p>
           <div className="flex justify-end gap-1.5">
             <button

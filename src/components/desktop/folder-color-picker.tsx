@@ -26,7 +26,7 @@ export function FolderColorPicker({ slug, color }: { slug: string; color: Folder
       />
 
       {open && (
-        <div className="absolute left-0 top-6 flex w-max gap-1 rounded-xl border border-border bg-surface p-1.5 shadow-lg shadow-black/10">
+        <div className="desktop-popover absolute left-0 top-6 flex w-max gap-1 rounded-xl border border-border bg-surface p-1.5 shadow-lg shadow-black/10">
           {(Object.keys(FOLDER_COLORS) as FolderColorName[]).map((name) => (
             <button
               key={name}

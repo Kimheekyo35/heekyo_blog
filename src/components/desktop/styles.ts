@@ -20,4 +20,4 @@ export const label =
   'mt-2 inline-block max-w-full rounded px-1.5 py-0.5 align-top leading-tight transition-colors group-hover:bg-accent group-hover:text-white'
 
 /** 파일 이름표 — 글자를 고정폭으로 써서 파일처럼 보이게 합니다. */
-export const labelFile = `${label} line-clamp-2 font-mono text-[11px] tracking-tight`
+export const labelFile = `${label} line-clamp-2 text-[14px]`
