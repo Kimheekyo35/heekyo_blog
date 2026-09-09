@@ -170,7 +170,6 @@ export function Desktop({
   posts,
   profile,
   hobbies,
-  showProfile,
   folders,
   isAdmin,
   items,
@@ -181,7 +180,6 @@ export function Desktop({
   posts: PostListItem[]
   profile: Profile
   hobbies: string[]
-  showProfile: boolean
   folders: Folder[]
   isAdmin: boolean
   items: DesktopItemRow[]
@@ -291,12 +289,6 @@ export function Desktop({
             </DesktopItem>
           )}
 
-          {showProfile && !hidden('tile:profile') && (
-            <DesktopItem {...at('tile:profile', 93, 45)} rotate={-4} width="4.6rem">
-              <ProfileWindow profile={profile} hobbies={hobbies} isAdmin={isAdmin} />
-            </DesktopItem>
-          )}
-
           {isAdmin && !hidden('tile:write') && (
             <DesktopItem {...at('tile:write', 6, 58)} rotate={5} width="4.6rem">
               <Tile label="새 글 쓰기" href="/write">
@@ -345,6 +337,9 @@ export function Desktop({
             </DesktopItem>
           ))}
         </div>
+
+        {/* 바탕화면을 왔다 갔다 하는 졸라맨. 누르면 소개가 열립니다. */}
+        <ProfileWindow profile={profile} hobbies={hobbies} isAdmin={isAdmin} />
 
         {isAdmin && (
           <>

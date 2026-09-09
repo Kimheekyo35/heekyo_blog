@@ -487,3 +487,101 @@ a.doodle-cell:hover {
 .desktop-popover {
   rotate: calc(-1 * var(--r, 0deg));
 }
+
+/* ─────────────────────────────────────────────
+   바탕화면을 걸어 다니는 졸라맨
+   누르면 소개가 열립니다. 가리키면 멈춰서 누르기 쉽게 합니다.
+   ───────────────────────────────────────────── */
+
+.stroll {
+  /* 화면 폭에서 자기 몸집만큼 뺀 거리를 오갑니다. 가로 스크롤이 생기지 않게. */
+  --stroll-span: calc(100vw - 9rem);
+  animation: stroll 42s linear infinite;
+}
+
+.stroll:hover {
+  animation-play-state: paused;
+}
+
+@keyframes stroll {
+  0% {
+    transform: translateX(0) scaleX(1);
+  }
+  49.9% {
+    transform: translateX(var(--stroll-span)) scaleX(1);
+  }
+  50% {
+    transform: translateX(var(--stroll-span)) scaleX(-1);
+  }
+  99.9% {
+    transform: translateX(0) scaleX(-1);
+  }
+  100% {
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+/* 걸을 때 몸이 살짝 오르내립니다. */
+.stick-body {
+  animation: stick-bob 0.62s ease-in-out infinite;
+}
+
+@keyframes stick-bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -1.2px;
+  }
+}
+
+/* 팔다리는 관절을 축으로 앞뒤로 흔듭니다. */
+.stick-arm,
+.stick-leg {
+  transform-box: view-box;
+  animation: stick-swing 0.62s ease-in-out infinite;
+}
+
+.stick-arm {
+  transform-origin: 20px 23px;
+}
+
+.stick-leg {
+  transform-origin: 20px 38px;
+}
+
+/* 왼팔·오른다리가 한 짝, 오른팔·왼다리가 한 짝으로 움직여야 걷는 것처럼 보입니다. */
+.stick-back {
+  animation-name: stick-swing-back;
+}
+
+@keyframes stick-swing {
+  0%,
+  100% {
+    rotate: 20deg;
+  }
+  50% {
+    rotate: -20deg;
+  }
+}
+
+@keyframes stick-swing-back {
+  0%,
+  100% {
+    rotate: -20deg;
+  }
+  50% {
+    rotate: 20deg;
+  }
+}
+
+/* 움직임을 불편해하는 사용자에게는 한자리에 서 있게 합니다. */
+@media (prefers-reduced-motion: reduce) {
+  .stroll,
+  .stick-body,
+  .stick-arm,
+  .stick-leg {
+    animation: none;
+  }
+}

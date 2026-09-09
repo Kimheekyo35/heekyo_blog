@@ -6,7 +6,6 @@ import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
 import type { Profile } from '@/lib/profile'
 import { NowPlaying } from '@/components/now-playing'
-import { label as labelClass, tile } from '@/components/desktop/styles'
 
 /*
   바탕화면의 얼굴 타일. 누르면 소개가 창처럼 열립니다.
@@ -22,6 +21,15 @@ export function ProfileWindow({
   isAdmin: boolean
 }) {
   const [open, setOpen] = useState(false)
+
+  // 소개를 하나도 안 채웠는지. 빈 카드만 뜨는 것을 막는 데 씁니다.
+  const empty =
+    !profile.name &&
+    !profile.tagline &&
+    !profile.bio &&
+    !profile.avatarUrl &&
+    !profile.musicTitle &&
+    hobbies.length === 0
 
   useEffect(() => {
     if (!open) return
@@ -65,6 +73,13 @@ export function ProfileWindow({
           {profile.name && <h2 className="text-center text-lg font-bold">{profile.name}</h2>}
           {profile.tagline && (
             <p className="mt-1 text-center text-sm text-accent">{profile.tagline}</p>
+          )}
+
+          {/* 아직 아무것도 안 채웠을 때 빈 카드만 뜨지 않도록 */}
+          {empty && (
+            <p className="text-center text-sm text-muted">
+              {isAdmin ? '아직 소개를 채우지 않았습니다.' : '아직 소개가 없습니다.'}
+            </p>
           )}
 
           {profile.bio && (
@@ -121,47 +136,50 @@ export function ProfileWindow({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="group block w-full text-center transition-transform duration-200 hover:-translate-y-1"
-      >
-        <span className={tile}>
-          {profile.avatarUrl ? (
-            <Image
-              src={profile.avatarUrl}
-              alt=""
-              width={224}
-              height={224}
-              className="h-full w-full object-cover"
-              draggable={false}
-            />
-          ) : (
-            <PersonIcon />
-          )}
-        </span>
-        <span className={`${labelClass} text-[15px]`}>Who Am I</span>
-      </button>
+      {/*
+        바탕화면 아래쪽을 왔다 갔다 하는 졸라맨. 누르면 소개가 열립니다.
+        가리키면 멈추므로(globals.css의 .stroll:hover) 걸어가는 중에도 누르기 쉽습니다.
+      */}
+      <div className="stroll absolute bottom-3 left-4 z-10 lg:bottom-10 lg:left-8">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Who Am I — 소개 보기"
+          className="block w-11 cursor-pointer lg:w-14"
+        >
+          <StickFigure />
+        </button>
+      </div>
 
-      {/* 기울여 놓은 상자 안에서는 fixed가 화면 기준이 아니라서 body로 빼서 그립니다. */}
+      {/* 걸어 다니는 사람 안에서는 fixed가 화면 기준이 아닐 수 있어 body로 빼서 그립니다. */}
       {open && createPortal(window_, document.body)}
     </>
   )
 }
 
-function PersonIcon() {
+/** 걸어 다니는 졸라맨. 팔다리는 관절을 축으로 흔들립니다(globals.css). */
+function StickFigure() {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="0 0 40 60"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={2.4}
       strokeLinecap="round"
-      className="w-[52%] text-accent"
+      className="w-full text-foreground"
       aria-hidden
     >
-      <circle cx="12" cy="8.5" r="3.8" />
-      <path d="M4.8 20c1-3.9 3.8-5.8 7.2-5.8s6.2 1.9 7.2 5.8" />
+      {/* 뒤쪽 팔다리를 먼저 그려서 몸 뒤로 지나가게 합니다. */}
+      <line className="stick-leg stick-back" x1="20" y1="38" x2="12" y2="55" />
+      <line className="stick-arm stick-back" x1="20" y1="23" x2="12" y2="33" />
+
+      <g className="stick-body">
+        <circle cx="20" cy="10" r="6.5" />
+        <line x1="20" y1="16.5" x2="20" y2="38" />
+      </g>
+
+      <line className="stick-leg" x1="20" y1="38" x2="28" y2="55" />
+      <line className="stick-arm" x1="20" y1="23" x2="28" y2="33" />
     </svg>
   )
 }

@@ -1,6 +1,6 @@
 import { auth } from '@/auth'
 import { findPosts } from '@/lib/posts'
-import { getProfile, parseHobbies, isProfileEmpty } from '@/lib/profile'
+import { getProfile, parseHobbies } from '@/lib/profile'
 import { findDesktopItems, findDesktopSpots, dateKey } from '@/lib/desktop'
 import { findFolders } from '@/lib/categories'
 import { Desktop } from '@/components/desktop/desktop'
@@ -30,8 +30,6 @@ export default async function HomePage() {
       posts={posts}
       profile={profile}
       hobbies={parseHobbies(profile.hobbies)}
-      // 아직 아무것도 안 채웠는데 방문자라면 빈 소개를 보여줄 이유가 없습니다.
-      showProfile={!isProfileEmpty(profile) || isAdmin}
       isAdmin={isAdmin}
       items={items}
       spots={spots}
