@@ -1,13 +1,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Folder } from '@/lib/categories'
-import { firstImage } from '@/lib/posts'
 import { EXTRA_SLOTS, type DesktopItemRow, type Spots } from '@/lib/desktop'
 import { removeDesktopItem, hideDesktopIcon, renameDesktopItem } from '@/lib/actions/desktop'
 import { removeFolder, renameFolder } from '@/lib/actions/folder'
 import { FolderColorPicker } from '@/components/desktop/folder-color-picker'
 import { RenameButton } from '@/components/desktop/rename-button'
-import type { PostListItem } from '@/components/post-list'
 import type { Profile } from '@/lib/profile'
 import { BlotBubble } from '@/components/desktop/blot-bubble'
 import { FolderIcon, DocIcon, PencilIcon } from '@/components/desktop/icons'
@@ -17,7 +15,6 @@ import {
   photo,
   tile,
   label as labelClass,
-  labelFile,
 } from '@/components/desktop/styles'
 import { DesktopSurface, DesktopItem } from '@/components/desktop/desktop-surface'
 import { DesktopAdder } from '@/components/desktop/desktop-adder'
@@ -44,26 +41,6 @@ function CategoryFolder({ folder }: { folder: Folder }) {
       {/* folder-<색> 이 이 아이콘 안에서만 폴더 색을 바꿉니다 (globals.css). */}
       <FolderIcon className={`w-full folder-${folder.color} ${shadow}`} />
       <span className={`${labelClass} text-[15px]`}>{folder.label}</span>
-    </Link>
-  )
-}
-
-/** 글 하나 = 파일 하나. 사진이 있으면 사진을, 없으면 문서 아이콘을 씌웁니다. */
-function PostFile({ post, portrait }: { post: PostListItem; portrait?: boolean }) {
-  const image = firstImage(post.content)
-  // 띄어쓰기를 밑줄로 바꿔 파일 이름처럼 보이게 합니다.
-  const name = `${post.title.trim().replace(/\s+/g, '_')}.${image ? 'jpg' : 'txt'}`
-
-  return (
-    <Link href={`/posts/${post.slug}`} className={lift} title={post.title} draggable={false}>
-      {image ? (
-        <div className={`${photo} ${portrait ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}>
-          <Image src={image} alt="" fill sizes="140px" className="object-cover" draggable={false} />
-        </div>
-      ) : (
-        <DocIcon className={`mx-auto w-[76%] ${shadow}`} />
-      )}
-      <span className={labelFile}>{name}</span>
     </Link>
   )
 }
@@ -152,22 +129,14 @@ function TileEqualizer() {
   )
 }
 
-/** 폴더와 글 파일이 처음 놓이는 자리. */
+/** 폴더가 처음 놓이는 자리. */
 const FOLDER_SPREAD = [
   { x: 9, y: 37, rotate: -3 },
   { x: 88, y: 18, rotate: 3 },
   { x: 12, y: 77, rotate: 2 },
 ]
 
-const FILE_SPREAD = [
-  { x: 64, y: 66, rotate: -2 },
-  { x: 35, y: 68, rotate: -1 },
-  { x: 48, y: 85, rotate: 2 },
-  { x: 72, y: 86, rotate: -1 },
-]
-
 export function Desktop({
-  posts,
   profile,
   hobbies,
   folders,
@@ -177,7 +146,6 @@ export function Desktop({
   today,
   calendarPosts,
 }: {
-  posts: PostListItem[]
   profile: Profile
   hobbies: string[]
   folders: Folder[]
@@ -197,9 +165,6 @@ export function Desktop({
     y: spots[key]?.y ?? y,
     remove: hideDesktopIcon.bind(null, key),
   })
-
-  // 파일로 띄울 글은 치우지 않은 것 중 최신 네 개까지. 하나를 치우면 다음 글이 올라옵니다.
-  const files = posts.filter((post) => !hidden(`post:${post.slug}`)).slice(0, 4)
 
   return (
     <CalendarProvider today={today} posts={calendarPosts} folders={folders}>
@@ -296,20 +261,6 @@ export function Desktop({
               </Tile>
             </DesktopItem>
           )}
-
-          {files.map((post, i) => {
-            const spread = FILE_SPREAD[i]
-            return (
-              <DesktopItem
-                key={post.id}
-                {...at(`post:${post.slug}`, spread.x, spread.y)}
-                rotate={spread.rotate}
-                width="7rem"
-              >
-                <PostFile post={post} portrait={i === 1} />
-              </DesktopItem>
-            )
-          })}
 
           {/* 주인이 올려 둔 사진과 파일 — 이건 치우면 아예 지웁니다. */}
           {items.map((item) => (

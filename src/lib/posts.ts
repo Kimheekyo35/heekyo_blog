@@ -24,9 +24,3 @@ export function findPosts({ isAdmin, category }: { isAdmin: boolean; category?: 
     select: postListSelect,
   })
 }
-
-/** 본문에서 첫 사진 주소를 꺼냅니다. 홈 바탕화면의 파일 미리보기에 씁니다. */
-export function firstImage(html: string): string | null {
-  const match = html.match(/<img[^>]+src="([^"]+)"/i)
-  return match?.[1] ?? null
-}

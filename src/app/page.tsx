@@ -27,7 +27,6 @@ export default async function HomePage() {
   return (
     // 홈은 바탕화면 하나뿐입니다. 글은 폴더나 달력을 눌러서 찾아갑니다.
     <Desktop
-      posts={posts}
       profile={profile}
       hobbies={parseHobbies(profile.hobbies)}
       isAdmin={isAdmin}
