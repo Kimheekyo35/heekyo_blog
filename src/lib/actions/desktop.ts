@@ -116,3 +116,13 @@ export async function showAllDesktopIcons() {
   await db.desktopSpot.updateMany({ where: { hidden: true }, data: { hidden: false } })
   revalidatePath('/')
 }
+
+/** 올려 둔 사진·파일의 이름표를 고칩니다. */
+export async function renameDesktopItem(id: string, label: string) {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') return
+
+  const next = label.trim().slice(0, LABEL_MAX)
+  await db.desktopItem.update({ where: { id }, data: { label: next } }).catch(() => null)
+  revalidatePath('/')
+}

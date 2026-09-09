@@ -69,7 +69,8 @@ export function DesktopAdder() {
         <div className="mb-3 w-64 rounded-2xl border border-border bg-surface p-4 shadow-xl shadow-black/10">
           <p className="mb-1 text-sm font-semibold">바탕화면에 만들기</p>
           <p className="mb-3 text-xs leading-relaxed text-muted">
-            만든 다음 아이콘을 끌어서 원하는 자리에 놓으세요.
+            아래 이름은 폴더와 사진에 모두 쓰입니다. 만든 뒤에는 아이콘의 ✎ 로 언제든 고칠 수
+            있어요.
           </p>
 
           <input
@@ -86,7 +87,7 @@ export function DesktopAdder() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="폴더 이름 (예: 여행)"
+            placeholder="이름 (예: 여행, 바다사진)"
             maxLength={20}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
           />

@@ -3,9 +3,10 @@ import Link from 'next/link'
 import type { Folder } from '@/lib/categories'
 import { firstImage } from '@/lib/posts'
 import { EXTRA_SLOTS, type DesktopItemRow, type Spots } from '@/lib/desktop'
-import { removeDesktopItem, hideDesktopIcon } from '@/lib/actions/desktop'
-import { removeFolder } from '@/lib/actions/folder'
+import { removeDesktopItem, hideDesktopIcon, renameDesktopItem } from '@/lib/actions/desktop'
+import { removeFolder, renameFolder } from '@/lib/actions/folder'
 import { FolderColorPicker } from '@/components/desktop/folder-color-picker'
+import { RenameButton } from '@/components/desktop/rename-button'
 import type { PostListItem } from '@/components/post-list'
 import type { Profile } from '@/lib/profile'
 import { BlotIcon } from '@/components/blot-icon'
@@ -249,7 +250,15 @@ export function Desktop({
                 {...at(key, spread.x, spread.y)}
                 rotate={spread.rotate}
                 remove={removeFolder.bind(null, folder.slug)}
-                extra={<FolderColorPicker slug={folder.slug} color={folder.color} />}
+                extra={
+                  <>
+                    <FolderColorPicker slug={folder.slug} color={folder.color} />
+                    <RenameButton
+                      label={folder.label}
+                      rename={renameFolder.bind(null, folder.slug)}
+                    />
+                  </>
+                }
               >
                 <CategoryFolder folder={folder} />
               </DesktopItem>
@@ -321,6 +330,12 @@ export function Desktop({
               rotate={item.rotate}
               width={item.kind === 'image' ? '7rem' : '6.5rem'}
               remove={removeDesktopItem.bind(null, item.id)}
+              extra={
+                <RenameButton
+                  label={item.label}
+                  rename={renameDesktopItem.bind(null, item.id)}
+                />
+              }
             >
               <UserItem item={item} />
             </DesktopItem>

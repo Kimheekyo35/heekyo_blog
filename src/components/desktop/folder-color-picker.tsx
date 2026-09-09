@@ -13,7 +13,8 @@ export function FolderColorPicker({ slug, color }: { slug: string; color: Folder
   const [pending, startTransition] = useTransition()
 
   return (
-    <div className="absolute -left-2 -top-2 z-20">
+    // 아이콘을 끄는 손짓과 섞이지 않게 합니다.
+    <div className="absolute -left-2 -top-2 z-20" onPointerDown={(e) => e.stopPropagation()}>
       <button
         type="button"
         title="폴더 색 바꾸기"
