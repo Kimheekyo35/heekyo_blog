@@ -59,7 +59,8 @@ export function DesktopItem({
   rotate = 0,
   width = '7.5rem',
   remove,
-  removeHint = '바탕화면에서 치울까요? 나중에 다시 꺼낼 수 있어요.',
+  removeHint = '바탕화면에서 치울까요?',
+  removeLabel,
   extra,
   children,
 }: {
@@ -75,6 +76,8 @@ export function DesktopItem({
   remove?: () => Promise<void>
   /** 치우기 전에 한 번 더 물어볼 때 보여 줄 한 줄. */
   removeHint?: string
+  /** 확인 단추 글자. 아주 지우는 것은 '지우기'. */
+  removeLabel?: string
   /** 아이콘 모서리에 같이 붙일 것(폴더 색 단추 등). 주인에게만 보입니다. */
   extra?: React.ReactNode
   children: React.ReactNode
@@ -180,7 +183,7 @@ export function DesktopItem({
 
         {editable && remove && (
           <div className="opacity-0 transition-opacity focus-within:opacity-100 group-hover/icon:opacity-100">
-            <RemoveButton remove={remove} hint={removeHint} />
+            <RemoveButton remove={remove} hint={removeHint} confirmLabel={removeLabel} />
           </div>
         )}
       </div>

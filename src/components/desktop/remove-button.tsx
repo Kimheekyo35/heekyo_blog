@@ -9,11 +9,14 @@ import { useState } from 'react'
 export function RemoveButton({
   remove,
   hint,
+  confirmLabel = '치우기',
 }: {
   /** 서버에서 실제로 치우는 일. 아이콘마다 자기 것을 넘겨받습니다. */
   remove: () => Promise<void>
   /** 무엇이 어떻게 되는지 알려 주는 한 줄. */
   hint: string
+  /** 확인 단추 글자. 아주 지우는 것은 '지우기'로 구분합니다. */
+  confirmLabel?: string
 }) {
   const [asking, setAsking] = useState(false)
 
@@ -46,7 +49,7 @@ export function RemoveButton({
                 type="submit"
                 className="rounded-lg bg-red-600 px-2 py-1 text-xs font-medium text-white transition-opacity hover:opacity-90"
               >
-                치우기
+                {confirmLabel}
               </button>
             </form>
           </div>

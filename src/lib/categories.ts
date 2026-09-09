@@ -11,27 +11,38 @@ export type Folder = {
   label: string
   tagline: string
   color: FolderColorName
+  /** 이 폴더에 든 글 수. 지우기 전에 알려 주는 데 씁니다. */
+  posts: number
 }
 
 const folderSelect = { slug: true, label: true, tagline: true, color: true } as const
 
-function toFolder(row: { slug: string; label: string; tagline: string; color: string }): Folder {
+function toFolder(
+  row: { slug: string; label: string; tagline: string; color: string },
+  posts = 0
+): Folder {
   return {
     slug: row.slug,
     label: row.label,
     tagline: row.tagline,
     // 색 이름이 지워졌거나 이상하면 기본색으로 그립니다.
     color: isFolderColor(row.color) ? row.color : DEFAULT_FOLDER_COLOR,
+    posts,
   }
 }
 
 /** 만든 순서(sort)대로 폴더 전부. 바탕화면과 글쓰기 화면이 같은 순서를 씁니다. */
 export async function findFolders(): Promise<Folder[]> {
-  const rows = await db.folder.findMany({
-    orderBy: [{ sort: 'asc' }, { createdAt: 'asc' }],
-    select: folderSelect,
-  })
-  return rows.map(toFolder)
+  const [rows, counts] = await Promise.all([
+    db.folder.findMany({
+      orderBy: [{ sort: 'asc' }, { createdAt: 'asc' }],
+      select: folderSelect,
+    }),
+    db.post.groupBy({ by: ['category'], _count: { _all: true } }),
+  ])
+
+  const byCategory = new Map(counts.map((row) => [row.category, row._count._all]))
+  return rows.map((row) => toFolder(row, byCategory.get(row.slug) ?? 0))
 }
 
 export async function findFolder(slug: string | null | undefined): Promise<Folder | null> {

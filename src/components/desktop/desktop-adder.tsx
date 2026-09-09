@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { addDesktopItem, resetDesktopSpots, showAllDesktopIcons } from '@/lib/actions/desktop'
+import { addDesktopItem, resetDesktopSpots } from '@/lib/actions/desktop'
 import { addFolder } from '@/lib/actions/folder'
 import { DEFAULT_FOLDER_COLOR, FOLDER_COLORS, type FolderColorName } from '@/lib/folder-colors'
 import { uploadImage } from '@/lib/upload-client'
@@ -142,24 +142,14 @@ export function DesktopAdder() {
 
           {error && <p className="mt-2.5 text-xs text-red-600">{error}</p>}
 
-          <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-xs text-muted">
-            <button
-              type="button"
-              disabled={working}
-              onClick={() => startTransition(async () => void (await showAllDesktopIcons()))}
-              className="text-left transition-colors hover:text-foreground disabled:opacity-50"
-            >
-              치운 아이콘 다시 꺼내기
-            </button>
-            <button
-              type="button"
-              disabled={working}
-              onClick={() => startTransition(async () => void (await resetDesktopSpots()))}
-              className="text-left transition-colors hover:text-foreground disabled:opacity-50"
-            >
-              아이콘 자리 처음으로 되돌리기
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={working}
+            onClick={() => startTransition(async () => void (await resetDesktopSpots()))}
+            className="mt-3 w-full border-t border-border pt-3 text-left text-xs text-muted transition-colors hover:text-foreground disabled:opacity-50"
+          >
+            바탕화면 배치 처음으로 되돌리기
+          </button>
         </div>
       )}
 

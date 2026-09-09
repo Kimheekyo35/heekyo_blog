@@ -82,7 +82,10 @@ export async function moveDesktopIcon(key: string, x: number, y: number): Promis
   return { ok: true }
 }
 
-/** 옮겨 둔 자리를 모두 지워 처음 배치로 되돌립니다. 올린 사진·파일은 그대로 둡니다. */
+/**
+ * 바탕화면을 처음 배치로 되돌립니다. 옮겨 둔 자리와 치워 둔 것이 모두 사라집니다.
+ * 올린 사진·파일과 폴더 자체는 그대로입니다.
+ */
 export async function resetDesktopSpots() {
   const session = await auth()
   if (session?.user?.role !== 'ADMIN') return
@@ -108,14 +111,6 @@ export async function hideDesktopIcon(key: string) {
   revalidatePath('/')
 }
 
-/** 치워 둔 아이콘을 모두 다시 꺼냅니다. 옮겨 놓은 자리는 그대로 둡니다. */
-export async function showAllDesktopIcons() {
-  const session = await auth()
-  if (session?.user?.role !== 'ADMIN') return
-
-  await db.desktopSpot.updateMany({ where: { hidden: true }, data: { hidden: false } })
-  revalidatePath('/')
-}
 
 /** 올려 둔 사진·파일의 이름표를 고칩니다. */
 export async function renameDesktopItem(id: string, label: string) {

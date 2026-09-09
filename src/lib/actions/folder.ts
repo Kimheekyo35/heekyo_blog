@@ -65,26 +65,28 @@ export async function setFolderColor(slug: string, color: string): Promise<Folde
 }
 
 /**
- * 폴더를 치웁니다.
- * 안에 글이 있으면 지우지 않고 바탕화면에서만 감춥니다(글을 잃으면 안 되니까요).
- * 빈 폴더는 아주 지웁니다.
+ * 폴더를 지웁니다. 되돌릴 수 없습니다.
+ * 안에 글이 있으면 그 글들은 남은 첫 폴더로 옮깁니다(글을 잃으면 안 되니까요).
+ * 남은 폴더가 하나도 없으면 분류 없는 글이 됩니다.
  */
 export async function removeFolder(slug: string) {
   const session = await auth()
   if (session?.user?.role !== 'ADMIN') return
 
-  const posts = await db.post.count({ where: { category: slug } })
+  const moveTo = await db.folder.findFirst({
+    where: { slug: { not: slug } },
+    orderBy: [{ sort: 'asc' }, { createdAt: 'asc' }],
+    select: { slug: true },
+  })
 
-  if (posts > 0) {
-    const key = `folder:${slug}`
-    await db.desktopSpot.upsert({
-      where: { key },
-      create: { key, x: 50, y: 50, hidden: true },
-      update: { hidden: true },
-    })
-  } else {
-    await db.folder.delete({ where: { slug } }).catch(() => null)
-  }
+  await db.post.updateMany({
+    where: { category: slug },
+    data: { category: moveTo?.slug ?? null },
+  })
+
+  await db.folder.delete({ where: { slug } }).catch(() => null)
+  // 바탕화면에 남아 있던 자리 기록도 같이 치웁니다.
+  await db.desktopSpot.delete({ where: { key: `folder:${slug}` } }).catch(() => null)
 
   revalidatePath('/', 'layout')
 }

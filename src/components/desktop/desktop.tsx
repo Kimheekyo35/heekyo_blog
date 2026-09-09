@@ -128,6 +128,17 @@ function TileEqualizer() {
   )
 }
 
+/** 폴더를 지우기 전에 보여 줄 한 줄. 글이 있으면 어디로 옮겨지는지 밝힙니다. */
+function folderRemoveHint(folder: Folder, folders: Folder[]) {
+  const name = `'${folder.label}' 폴더를 지웁니다. 되돌릴 수 없습니다.`
+  if (folder.posts === 0) return name
+
+  const moveTo = folders.find((other) => other.slug !== folder.slug)
+  return moveTo
+    ? `'${folder.label}' 폴더를 지웁니다. 안에 있는 글 ${folder.posts}개는 '${moveTo.label}' 폴더로 옮겨집니다. 되돌릴 수 없습니다.`
+    : `'${folder.label}' 폴더를 지웁니다. 안에 있는 글 ${folder.posts}개는 분류 없는 글이 됩니다. 되돌릴 수 없습니다.`
+}
+
 /** 폴더가 처음 놓이는 자리. */
 const FOLDER_SPREAD = [
   { x: 9, y: 37, rotate: -3 },
@@ -201,7 +212,6 @@ export function Desktop({
         <div className="desktop-scatter">
           {folders.map((folder, i) => {
             const key = `folder:${folder.slug}`
-            if (hidden(key)) return null
             // 폴더가 셋보다 많아지면 빈자리 목록에서 이어서 자리를 줍니다.
             const spread =
               FOLDER_SPREAD[i] ?? EXTRA_SLOTS[(i - FOLDER_SPREAD.length) % EXTRA_SLOTS.length]
@@ -212,7 +222,8 @@ export function Desktop({
                 {...at(key, spread.x, spread.y)}
                 rotate={spread.rotate}
                 remove={removeFolder.bind(null, folder.slug)}
-                removeHint={`'${folder.label}' 폴더를 지울까요? 안에 글이 있으면 지우지 않고 바탕화면에서만 감춥니다.`}
+                removeHint={folderRemoveHint(folder, folders)}
+                removeLabel="지우기"
                 extra={
                   <>
                     <FolderColorPicker slug={folder.slug} color={folder.color} />
@@ -268,9 +279,10 @@ export function Desktop({
               remove={removeDesktopItem.bind(null, item.id)}
               removeHint={
                 item.kind === 'image'
-                  ? '이 사진을 바탕화면에서 지울까요? 다시 되돌릴 수 없습니다.'
-                  : '이 파일을 바탕화면에서 지울까요? 다시 되돌릴 수 없습니다.'
+                  ? '이 사진을 지웁니다. 되돌릴 수 없습니다.'
+                  : '이 파일을 지웁니다. 되돌릴 수 없습니다.'
               }
+              removeLabel="지우기"
               extra={
                 <RenameButton
                   label={item.label}
