@@ -40,7 +40,7 @@ export function ProfileWindow({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="소개"
+        aria-label="Who Am I"
         onClick={(e) => e.stopPropagation()}
         className="my-auto w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl shadow-black/20"
       >
@@ -140,7 +140,7 @@ export function ProfileWindow({
             <PersonIcon />
           )}
         </span>
-        <span className={`${labelClass} text-[15px]`}>소개</span>
+        <span className={`${labelClass} text-[15px]`}>Who Am I</span>
       </button>
 
       {/* 기울여 놓은 상자 안에서는 fixed가 화면 기준이 아니라서 body로 빼서 그립니다. */}
