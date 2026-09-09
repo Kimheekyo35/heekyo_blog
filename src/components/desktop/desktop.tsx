@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { CATEGORIES } from '@/lib/categories'
 import { firstImage } from '@/lib/posts'
 import type { DesktopItemRow, Spots } from '@/lib/desktop'
-import { removeDesktopItem } from '@/lib/actions/desktop'
+import type { FolderColorName } from '@/lib/folder-colors'
+import { removeDesktopItem, hideDesktopIcon } from '@/lib/actions/desktop'
 import type { PostListItem } from '@/components/post-list'
 import type { Profile } from '@/lib/profile'
 import { BlotIcon } from '@/components/blot-icon'
@@ -31,13 +32,13 @@ import {
   넓은 화면에서는 아이콘이 사방에 흩어져 있고, 좁은 화면에서는 가운데로 모여
   위에서 아래로 쌓입니다(globals.css의 .desktop-item 참고).
 
-  아래 좌표는 "처음 놓이는 자리"일 뿐입니다. 주인이 끌어서 옮기면 그 자리가
-  DesktopSpot에 저장되고, 다음부터는 저장된 자리가 이깁니다.
+  아래 좌표는 "처음 놓이는 자리"일 뿐입니다. 주인이 끌어서 옮기거나 치우면
+  그것이 DesktopSpot에 저장되고, 다음부터는 저장된 쪽이 이깁니다.
 */
 
 function CategoryFolder({ slug, label }: { slug: string; label: string }) {
   return (
-    <Link href={`/category/${slug}`} className={lift}>
+    <Link href={`/category/${slug}`} className={lift} draggable={false}>
       <FolderIcon className={`w-full ${shadow}`} />
       <span className={`${labelClass} text-[13px]`}>{label}</span>
     </Link>
@@ -51,10 +52,10 @@ function PostFile({ post, portrait }: { post: PostListItem; portrait?: boolean }
   const name = `${post.title.trim().replace(/\s+/g, '_')}.${image ? 'jpg' : 'txt'}`
 
   return (
-    <Link href={`/posts/${post.slug}`} className={lift} title={post.title}>
+    <Link href={`/posts/${post.slug}`} className={lift} title={post.title} draggable={false}>
       {image ? (
         <div className={`${photo} ${portrait ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}>
-          <Image src={image} alt="" fill sizes="140px" className="object-cover" />
+          <Image src={image} alt="" fill sizes="140px" className="object-cover" draggable={false} />
         </div>
       ) : (
         <DocIcon className={`mx-auto w-[76%] ${shadow}`} />
@@ -64,13 +65,20 @@ function PostFile({ post, portrait }: { post: PostListItem; portrait?: boolean }
   )
 }
 
-/** 주인이 직접 올려 둔 사진·파일. 주인에게는 치우는 단추가 같이 보입니다. */
-function UserItem({ item, isAdmin }: { item: DesktopItemRow; isAdmin: boolean }) {
+/** 주인이 직접 올려 둔 사진·파일. */
+function UserItem({ item }: { item: DesktopItemRow }) {
   return (
-    <div className="group relative text-center">
+    <div className="text-center">
       {item.kind === 'image' && item.imageUrl ? (
         <div className={`${photo} aspect-[4/3]`}>
-          <Image src={item.imageUrl} alt={item.label} fill sizes="140px" className="object-cover" />
+          <Image
+            src={item.imageUrl}
+            alt={item.label}
+            fill
+            sizes="140px"
+            className="object-cover"
+            draggable={false}
+          />
         </div>
       ) : (
         <DocIcon className={`mx-auto w-[76%] ${shadow}`} />
@@ -80,21 +88,6 @@ function UserItem({ item, isAdmin }: { item: DesktopItemRow; isAdmin: boolean })
         <span className="mt-2 line-clamp-2 inline-block max-w-full rounded px-1.5 py-0.5 align-top font-mono text-[11px] leading-tight tracking-tight">
           {item.label}
         </span>
-      )}
-
-      {isAdmin && (
-        <form
-          action={removeDesktopItem.bind(null, item.id)}
-          className="absolute -right-1.5 -top-1.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
-        >
-          <button
-            type="submit"
-            title="바탕화면에서 치우기"
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-xs leading-none text-background shadow"
-          >
-            ×
-          </button>
-        </form>
       )}
     </div>
   )
@@ -126,6 +119,7 @@ function Tile({
       title={label}
       aria-label={label}
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      draggable={false}
       className={`${tile} transition-transform duration-200 hover:-translate-y-1`}
     >
       {children}
@@ -155,6 +149,20 @@ function TileEqualizer() {
   )
 }
 
+/** 폴더와 글 파일이 처음 놓이는 자리. */
+const FOLDER_SPREAD = [
+  { x: 9, y: 37, rotate: -3 },
+  { x: 88, y: 18, rotate: 3 },
+  { x: 12, y: 77, rotate: 2 },
+]
+
+const FILE_SPREAD = [
+  { x: 64, y: 66, rotate: -2 },
+  { x: 35, y: 68, rotate: -1 },
+  { x: 48, y: 85, rotate: 2 },
+  { x: 72, y: 86, rotate: -1 },
+]
+
 export function Desktop({
   posts,
   profile,
@@ -163,6 +171,7 @@ export function Desktop({
   isAdmin,
   items,
   spots,
+  folderColor,
   today,
   calendarPosts,
 }: {
@@ -173,14 +182,23 @@ export function Desktop({
   isAdmin: boolean
   items: DesktopItemRow[]
   spots: Spots
+  folderColor: FolderColorName
   today: string
   calendarPosts: CalendarPost[]
 }) {
-  // 파일로 띄울 글은 최신 네 개까지만. 나머지는 폴더와 달력에서 찾습니다.
-  const files = posts.slice(0, 4)
+  /** 치워 둔 아이콘인지. */
+  const hidden = (key: string) => spots[key]?.hidden === true
 
-  /** 저장해 둔 자리가 있으면 그 자리로, 없으면 처음 정해 둔 자리로. */
-  const at = (key: string, x: number, y: number) => ({ spotKey: key, ...(spots[key] ?? { x, y }) })
+  /** 저장해 둔 자리가 있으면 그 자리로, 없으면 처음 정해 둔 자리로. 치우는 단추도 함께. */
+  const at = (key: string, x: number, y: number) => ({
+    spotKey: key,
+    x: spots[key]?.x ?? x,
+    y: spots[key]?.y ?? y,
+    remove: hideDesktopIcon.bind(null, key),
+  })
+
+  // 파일로 띄울 글은 치우지 않은 것 중 최신 네 개까지. 하나를 치우면 다음 글이 올라옵니다.
+  const files = posts.filter((post) => !hidden(`post:${post.slug}`)).slice(0, 4)
 
   return (
     <CalendarProvider today={today} posts={calendarPosts}>
@@ -188,8 +206,13 @@ export function Desktop({
         editable={isAdmin}
         className="desktop relative w-full px-5 pt-6 pb-10 lg:px-10 lg:py-0"
       >
-        {/* 제목은 맨 위 가운데. 큰 폴더가 글자 아랫부분을 살짝 덮습니다. */}
-        <DesktopItem {...at('title', 50, 27)} width="min(42rem, 84vw)">
+        {/* 제목은 맨 위 가운데. 큰 폴더가 글자 아랫부분을 살짝 덮습니다. 이건 치울 수 없습니다. */}
+        <DesktopItem
+          spotKey="title"
+          x={spots['title']?.x ?? 50}
+          y={spots['title']?.y ?? 27}
+          width="min(42rem, 84vw)"
+        >
           <div className="flex select-none flex-col items-center">
             <h1 className="text-center font-display text-[clamp(3.4rem,14vw,9rem)] font-extrabold leading-[0.85] tracking-[-0.05em]">
               heekyo
@@ -211,28 +234,34 @@ export function Desktop({
 
         {/* 흩어진 아이콘들 — 좁은 화면에서는 여기서부터 아래로 쌓입니다. */}
         <div className="desktop-scatter">
-          <DesktopItem {...at(`folder:${CATEGORIES[0].slug}`, 9, 37)} rotate={-3}>
-            <CategoryFolder {...CATEGORIES[0]} />
-          </DesktopItem>
-          <DesktopItem {...at(`folder:${CATEGORIES[1].slug}`, 88, 18)} rotate={3}>
-            <CategoryFolder {...CATEGORIES[1]} />
-          </DesktopItem>
-          <DesktopItem {...at(`folder:${CATEGORIES[2].slug}`, 12, 77)} rotate={2}>
-            <CategoryFolder {...CATEGORIES[2]} />
-          </DesktopItem>
+          {CATEGORIES.map((category, i) => {
+            const key = `folder:${category.slug}`
+            if (hidden(key)) return null
+            const spread = FOLDER_SPREAD[i] ?? { x: 50, y: 50, rotate: 0 }
 
-          <DesktopItem {...at('tile:blot', 16, 12)} rotate={-5} width="4.6rem">
-            <Tile label="blot — 글을 대신 요약해 주는 로봇">
-              <BlotIcon className="w-[58%] text-accent" />
-            </Tile>
-          </DesktopItem>
+            return (
+              <DesktopItem key={key} {...at(key, spread.x, spread.y)} rotate={spread.rotate}>
+                <CategoryFolder {...category} />
+              </DesktopItem>
+            )
+          })}
+
+          {!hidden('tile:blot') && (
+            <DesktopItem {...at('tile:blot', 16, 12)} rotate={-5} width="4.6rem">
+              <Tile label="blot — 글을 대신 요약해 주는 로봇">
+                <BlotIcon className="w-[58%] text-accent" />
+              </Tile>
+            </DesktopItem>
+          )}
 
           {/* 손그림 달력 — 글 쓴 날을 누르면 그날 글이 나옵니다. */}
-          <DesktopItem {...at('file:calendar', 84, 68)} rotate={-2} width="6.5rem">
-            <CalendarFile />
-          </DesktopItem>
+          {!hidden('file:calendar') && (
+            <DesktopItem {...at('file:calendar', 84, 68)} rotate={-2} width="6.5rem">
+              <CalendarFile />
+            </DesktopItem>
+          )}
 
-          {profile.musicTitle && (
+          {profile.musicTitle && !hidden('tile:music') && (
             <DesktopItem {...at('tile:music', 20, 63)} rotate={4} width="4.6rem">
               <Tile
                 label={`지금 듣는 곡 — ${profile.musicTitle}`}
@@ -244,13 +273,13 @@ export function Desktop({
             </DesktopItem>
           )}
 
-          {showProfile && (
+          {showProfile && !hidden('tile:profile') && (
             <DesktopItem {...at('tile:profile', 93, 45)} rotate={-4} width="4.6rem">
               <ProfileWindow profile={profile} hobbies={hobbies} isAdmin={isAdmin} />
             </DesktopItem>
           )}
 
-          {isAdmin && (
+          {isAdmin && !hidden('tile:write') && (
             <DesktopItem {...at('tile:write', 6, 58)} rotate={5} width="4.6rem">
               <Tile label="새 글 쓰기" href="/write">
                 <PencilIcon className="w-[52%] text-accent" />
@@ -259,14 +288,7 @@ export function Desktop({
           )}
 
           {files.map((post, i) => {
-            // 처음 자리는 넷을 골고루 흩어 놓고, 옮기면 그 자리를 기억합니다.
-            const spread = [
-              { x: 64, y: 66, rotate: -2 },
-              { x: 35, y: 68, rotate: -1 },
-              { x: 48, y: 85, rotate: 2 },
-              { x: 72, y: 86, rotate: -1 },
-            ][i]
-
+            const spread = FILE_SPREAD[i]
             return (
               <DesktopItem
                 key={post.id}
@@ -279,7 +301,7 @@ export function Desktop({
             )
           })}
 
-          {/* 주인이 올려 둔 사진과 파일 */}
+          {/* 주인이 올려 둔 사진과 파일 — 이건 치우면 아예 지웁니다. */}
           {items.map((item) => (
             <DesktopItem
               key={item.id}
@@ -288,8 +310,9 @@ export function Desktop({
               y={item.y}
               rotate={item.rotate}
               width={item.kind === 'image' ? '7rem' : '6.5rem'}
+              remove={removeDesktopItem.bind(null, item.id)}
             >
-              <UserItem item={item} isAdmin={isAdmin} />
+              <UserItem item={item} />
             </DesktopItem>
           ))}
         </div>
@@ -298,9 +321,9 @@ export function Desktop({
           <>
             {/* 주인에게만 보이는 안내. 좁은 화면은 끌기가 없으므로 숨깁니다. */}
             <p className="pointer-events-none absolute bottom-7 left-10 z-10 hidden text-xs text-muted lg:block">
-              아이콘을 끌어서 자리를 옮길 수 있어요
+              아이콘을 끌어서 옮기고, × 를 눌러 치울 수 있어요
             </p>
-            <DesktopAdder />
+            <DesktopAdder folderColor={folderColor} />
           </>
         )}
       </DesktopSurface>

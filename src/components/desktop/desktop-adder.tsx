@@ -1,14 +1,20 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { addDesktopItem, resetDesktopSpots } from '@/lib/actions/desktop'
+import {
+  addDesktopItem,
+  resetDesktopSpots,
+  showAllDesktopIcons,
+  setFolderColor,
+} from '@/lib/actions/desktop'
+import { FOLDER_COLORS, type FolderColorName } from '@/lib/folder-colors'
 import { uploadImage } from '@/lib/upload-client'
 
 /**
  * 바탕화면에 사진이나 파일을 올리는 버튼. 블로그 주인에게만 보입니다.
  * 새로 올린 것은 빈자리에 놓이고, 그다음부터는 끌어서 원하는 곳에 두면 됩니다.
  */
-export function DesktopAdder() {
+export function DesktopAdder({ folderColor }: { folderColor: FolderColorName }) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [error, setError] = useState('')
@@ -107,14 +113,45 @@ export function DesktopAdder() {
 
           {error && <p className="mt-2.5 text-xs text-red-600">{error}</p>}
 
-          <button
-            type="button"
-            disabled={working}
-            onClick={() => startTransition(async () => void (await resetDesktopSpots()))}
-            className="mt-3 w-full border-t border-border pt-3 text-xs text-muted transition-colors hover:text-foreground disabled:opacity-50"
-          >
-            아이콘 자리 처음으로 되돌리기
-          </button>
+          <div className="mt-4 border-t border-border pt-3">
+            <p className="mb-2 text-xs font-semibold text-muted">폴더 색</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(Object.keys(FOLDER_COLORS) as FolderColorName[]).map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  disabled={working}
+                  title={FOLDER_COLORS[color].label}
+                  aria-label={`폴더 색 ${FOLDER_COLORS[color].label}`}
+                  aria-pressed={folderColor === color}
+                  onClick={() => startTransition(async () => void (await setFolderColor(color)))}
+                  style={{ background: FOLDER_COLORS[color].light.folder }}
+                  className={`h-7 w-7 rounded-lg ring-offset-2 ring-offset-surface transition-shadow disabled:opacity-50 ${
+                    folderColor === color ? 'ring-2 ring-foreground' : 'ring-1 ring-black/10'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-xs text-muted">
+            <button
+              type="button"
+              disabled={working}
+              onClick={() => startTransition(async () => void (await showAllDesktopIcons()))}
+              className="text-left transition-colors hover:text-foreground disabled:opacity-50"
+            >
+              치운 아이콘 다시 꺼내기
+            </button>
+            <button
+              type="button"
+              disabled={working}
+              onClick={() => startTransition(async () => void (await resetDesktopSpots()))}
+              className="text-left transition-colors hover:text-foreground disabled:opacity-50"
+            >
+              아이콘 자리 처음으로 되돌리기
+            </button>
+          </div>
         </div>
       )}
 

@@ -1,17 +1,18 @@
 import { auth } from '@/auth'
 import { findPosts } from '@/lib/posts'
 import { getProfile, parseHobbies, isProfileEmpty } from '@/lib/profile'
-import { findDesktopItems, findDesktopSpots, dateKey } from '@/lib/desktop'
+import { findDesktopItems, findDesktopSpots, getFolderColor, dateKey } from '@/lib/desktop'
 import { Desktop } from '@/components/desktop/desktop'
 
 export default async function HomePage() {
   const session = await auth()
   const isAdmin = session?.user?.role === 'ADMIN'
-  const [posts, profile, items, spots] = await Promise.all([
+  const [posts, profile, items, spots, folderColor] = await Promise.all([
     findPosts({ isAdmin }),
     getProfile(),
     findDesktopItems(),
     findDesktopSpots(),
+    getFolderColor(),
   ])
 
   // 달력에 점을 찍을 날짜들. 날짜 계산은 서버 시간 기준으로 한 번만 합니다.
@@ -32,6 +33,7 @@ export default async function HomePage() {
       isAdmin={isAdmin}
       items={items}
       spots={spots}
+      folderColor={folderColor}
       today={dateKey(new Date())}
       calendarPosts={calendarPosts}
     />

@@ -391,6 +391,13 @@ a.doodle-cell:hover {
     border-radius: 8px;
   }
 
+  /* 브라우저 기본 "링크·사진 끌어다 놓기"가 우리 끌기를 가로채지 않게 */
+  .desktop-item-editable a,
+  .desktop-item-editable img,
+  .desktop-item-editable svg {
+    -webkit-user-drag: none;
+  }
+
   .desktop-item-dragging {
     cursor: grabbing;
     z-index: 20;

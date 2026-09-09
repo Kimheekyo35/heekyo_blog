@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useMemo, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { moveDesktopIcon } from '@/lib/actions/desktop'
 
@@ -10,13 +10,18 @@ import { moveDesktopIcon } from '@/lib/actions/desktop'
   주인이 보고 있을 때는 아이콘을 끌어서 아무 데나 놓을 수 있고, 손을 떼면 그 자리가
   저장됩니다. 자리는 바탕화면 크기에 대한 비율(%)로 적으므로 창 크기가 달라져도
   같은 곳에 있습니다. 좁은 화면은 아이콘이 위에서 아래로 흐르는 배치라 끌지 않습니다.
+
+  손을 뗄 때까지의 추적은 아이콘이 아니라 window에서 합니다. 아이콘 위에는 링크와
+  사진이 얹혀 있어서, 브라우저가 "링크를 끌어다 놓기"를 먼저 시작해 버리면 아이콘
+  쪽 포인터 이벤트가 도중에 끊기기 때문입니다. 브라우저의 기본 끌기 자체는
+  draggable={false}와 globals.css에서 막습니다.
 */
 
 type Surface = { ref: RefObject<HTMLElement | null>; editable: boolean }
 
 const SurfaceContext = createContext<Surface | null>(null)
 
-/** 아이콘을 끌 수 있는 넓은 화면인지. */
+/** 아이콘을 흩어 놓는(=끌 수 있는) 넓은 화면인지. globals.css의 1024px과 같은 기준입니다. */
 function isSpreadOut() {
   return window.matchMedia('(min-width: 1024px)').matches
 }
@@ -52,6 +57,7 @@ export function DesktopItem({
   y,
   rotate = 0,
   width = '7.5rem',
+  remove,
   children,
 }: {
   /** 자리를 기억할 때 쓰는 이름. 예: "folder:daily", "item:abc123" */
@@ -62,6 +68,8 @@ export function DesktopItem({
   rotate?: number
   /** 아이콘 폭. 좁은 화면에서도 이 폭을 씁니다. */
   width?: string
+  /** 이 아이콘을 바탕화면에서 치우는 방법. 주인에게만 × 단추로 보입니다. */
+  remove?: () => Promise<void>
   children: React.ReactNode
 }) {
   const surface = useContext(SurfaceContext)
@@ -70,19 +78,11 @@ export function DesktopItem({
   const [pos, setPos] = useState({ x, y })
   const [dragging, setDragging] = useState(false)
 
-  // 끄는 동안의 좌표는 여기에도 같이 적어 둡니다. 손을 떼는 순간 화면이 아직
-  // 다시 그려지지 않았을 수 있어서, 저장할 때는 state 대신 이 값을 씁니다.
-  const drag = useRef<{
-    px: number
-    py: number
-    baseX: number
-    baseY: number
-    x: number
-    y: number
-    moved: boolean
-  } | null>(null)
   // 끌고 나서 손을 뗄 때 링크가 열리는 것을 한 번 막아 줍니다.
   const swallowClick = useRef(false)
+  // 끄는 도중에 이 아이콘이 화면에서 사라지면 창에 걸어 둔 감시도 거둡니다.
+  const detach = useRef<(() => void) | null>(null)
+  useEffect(() => () => detach.current?.(), [])
 
   // 서버에 저장된 자리가 바뀌면(다른 창에서 옮겼다면) 따라갑니다.
   // 그리는 중에 맞추는 편이 화면을 두 번 그리지 않아 깔끔합니다.
@@ -94,49 +94,48 @@ export function DesktopItem({
 
   function onPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
     if (!editable || e.button !== 0 || !isSpreadOut()) return
-    drag.current = {
-      px: e.clientX,
-      py: e.clientY,
-      baseX: pos.x,
-      baseY: pos.y,
-      x: pos.x,
-      y: pos.y,
-      moved: false,
-    }
-    e.currentTarget.setPointerCapture(e.pointerId)
-    setDragging(true)
-  }
-
-  function onPointerMove(e: ReactPointerEvent<HTMLDivElement>) {
-    const state = drag.current
     const box = surface?.ref.current
-    if (!state || !box) return
+    if (!box) return
 
-    const dx = e.clientX - state.px
-    const dy = e.clientY - state.py
-    // 몇 픽셀 흔들린 것은 끈 것이 아니라 그냥 누른 것으로 봅니다.
-    if (!state.moved && Math.abs(dx) + Math.abs(dy) < 4) return
-    state.moved = true
+    const startX = e.clientX
+    const startY = e.clientY
+    const base = { x: pos.x, y: pos.y }
+    // 끄는 동안의 좌표는 여기에 적어 둡니다. 손을 떼는 순간 화면이 아직 다시
+    // 그려지지 않았을 수 있어서, 저장할 때는 state가 아니라 이 값을 씁니다.
+    const now = { x: base.x, y: base.y, moved: false }
 
-    const rect = box.getBoundingClientRect()
-    state.x = clamp(state.baseX + (dx / rect.width) * 100, 2, 98)
-    state.y = clamp(state.baseY + (dy / rect.height) * 100, 3, 97)
-    setPos({ x: state.x, y: state.y })
-  }
+    const onMove = (event: PointerEvent) => {
+      const dx = event.clientX - startX
+      const dy = event.clientY - startY
+      // 몇 픽셀 흔들린 것은 끈 것이 아니라 그냥 누른 것으로 봅니다.
+      if (!now.moved && Math.abs(dx) + Math.abs(dy) < 4) return
+      now.moved = true
 
-  function onPointerUp(e: ReactPointerEvent<HTMLDivElement>) {
-    const state = drag.current
-    drag.current = null
-    setDragging(false)
-    if (!state) return
-
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId)
+      const rect = box.getBoundingClientRect()
+      now.x = clamp(base.x + (dx / rect.width) * 100, 2, 98)
+      now.y = clamp(base.y + (dy / rect.height) * 100, 3, 97)
+      setPos({ x: now.x, y: now.y })
     }
-    if (!state.moved) return
 
-    swallowClick.current = true
-    void moveDesktopIcon(spotKey, state.x, state.y)
+    const finish = () => {
+      detach.current?.()
+      setDragging(false)
+      if (!now.moved) return
+      swallowClick.current = true
+      void moveDesktopIcon(spotKey, now.x, now.y)
+    }
+
+    detach.current = () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', finish)
+      window.removeEventListener('pointercancel', finish)
+      detach.current = null
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', finish)
+    window.addEventListener('pointercancel', finish)
+    setDragging(true)
   }
 
   return (
@@ -153,19 +152,34 @@ export function DesktopItem({
         } as CSSProperties
       }
       onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
       onClickCapture={(e) => {
         if (!swallowClick.current) return
         e.preventDefault()
         e.stopPropagation()
         swallowClick.current = false
       }}
-      // 사진·링크를 끌면 브라우저가 제 나름대로 끌어가려 해서 막습니다.
+      // 브라우저가 링크·사진을 제 나름대로 끌고 가려는 것을 막습니다.
       onDragStart={(e) => e.preventDefault()}
     >
-      {children}
+      {/* × 단추를 아이콘 모서리에 붙이려면 감싸는 상자가 기준이 되어야 합니다. */}
+      <div className="group/icon relative">
+        {children}
+
+        {editable && remove && (
+          <form
+            action={remove}
+            className="absolute -right-2 -top-2 z-10 opacity-0 transition-opacity focus-within:opacity-100 group-hover/icon:opacity-100"
+          >
+            <button
+              type="submit"
+              title="바탕화면에서 치우기"
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-xs leading-none text-background shadow"
+            >
+              ×
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   )
 }

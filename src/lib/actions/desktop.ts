@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
-import { pickSlot } from '@/lib/desktop'
+import { pickSlot, SETTING_ID } from '@/lib/desktop'
+import { isFolderColor } from '@/lib/folder-colors'
 
 const LABEL_MAX = 30
 
@@ -89,4 +90,46 @@ export async function resetDesktopSpots() {
 
   await db.desktopSpot.deleteMany()
   revalidatePath('/')
+}
+
+/** 아이콘 하나를 바탕화면에서 치웁니다. 글이나 카테고리 자체는 그대로 있습니다. */
+export async function hideDesktopIcon(key: string) {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') return
+
+  if (!key || key.length > 200) return
+
+  await db.desktopSpot.upsert({
+    where: { key },
+    // 자리를 옮긴 적이 없어도 줄을 만들어야 하므로, 치울 때의 자리는 대충 가운데로 둡니다.
+    create: { key, x: 50, y: 50, hidden: true },
+    update: { hidden: true },
+  })
+
+  revalidatePath('/')
+}
+
+/** 치워 둔 아이콘을 모두 다시 꺼냅니다. 옮겨 놓은 자리는 그대로 둡니다. */
+export async function showAllDesktopIcons() {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') return
+
+  await db.desktopSpot.updateMany({ where: { hidden: true }, data: { hidden: false } })
+  revalidatePath('/')
+}
+
+/** 폴더 색을 고릅니다. */
+export async function setFolderColor(name: string) {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') return
+  if (!isFolderColor(name)) return
+
+  await db.desktopSetting.upsert({
+    where: { id: SETTING_ID },
+    create: { id: SETTING_ID, folderColor: name },
+    update: { folderColor: name },
+  })
+
+  // 폴더 색은 머리말에도 쓰이므로 화면 전체를 새로 그립니다.
+  revalidatePath('/', 'layout')
 }

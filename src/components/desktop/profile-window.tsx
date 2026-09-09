@@ -134,6 +134,7 @@ export function ProfileWindow({
               width={224}
               height={224}
               className="h-full w-full object-cover"
+              draggable={false}
             />
           ) : (
             <PersonIcon />

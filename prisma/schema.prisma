@@ -171,5 +171,13 @@ model DesktopSpot {
   key       String   @id
   x         Float
   y         Float
+  hidden    Boolean  @default(false) // 바탕화면에서 치운 아이콘
   updatedAt DateTime @updatedAt
+}
+
+// 바탕화면 꾸미기 (폴더 색 등). 한 줄만 있는 표입니다.
+model DesktopSetting {
+  id          String   @id @default("singleton")
+  folderColor String   @default("blue") // src/lib/folder-colors.ts 의 이름
+  updatedAt   DateTime @updatedAt
 }

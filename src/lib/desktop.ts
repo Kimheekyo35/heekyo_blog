@@ -1,4 +1,5 @@
 import { db } from '@/lib/db'
+import { DEFAULT_FOLDER_COLOR, isFolderColor, type FolderColorName } from '@/lib/folder-colors'
 
 /*
   바탕화면에 주인이 올린 사진·파일이 놓이는 자리.
@@ -55,10 +56,28 @@ export function findDesktopItems(): Promise<DesktopItemRow[]> {
   })
 }
 
-/** 주인이 끌어다 놓은 자리들. 기록이 없는 아이콘은 원래 자리에 그대로 놓입니다. */
-export type Spots = Record<string, { x: number; y: number }>
+/**
+ * 주인이 끌어다 놓은 자리와, 치워 둔 아이콘.
+ * 기록이 없는 아이콘은 원래 자리에 그대로 놓입니다.
+ */
+export type Spots = Record<string, { x: number; y: number; hidden: boolean }>
 
 export async function findDesktopSpots(): Promise<Spots> {
-  const rows = await db.desktopSpot.findMany({ select: { key: true, x: true, y: true } })
-  return Object.fromEntries(rows.map((row) => [row.key, { x: row.x, y: row.y }]))
+  const rows = await db.desktopSpot.findMany({
+    select: { key: true, x: true, y: true, hidden: true },
+  })
+  return Object.fromEntries(
+    rows.map((row) => [row.key, { x: row.x, y: row.y, hidden: row.hidden }])
+  )
 }
+
+/** 지금 고른 폴더 색. 한 번도 안 골랐으면 기본 파랑. */
+export async function getFolderColor(): Promise<FolderColorName> {
+  const row = await db.desktopSetting.findUnique({
+    where: { id: SETTING_ID },
+    select: { folderColor: true },
+  })
+  return isFolderColor(row?.folderColor) ? row.folderColor : DEFAULT_FOLDER_COLOR
+}
+
+export const SETTING_ID = 'singleton'
