@@ -7,7 +7,7 @@ import { removeFolder, renameFolder } from '@/lib/actions/folder'
 import { FolderColorPicker } from '@/components/desktop/folder-color-picker'
 import { RenameButton } from '@/components/desktop/rename-button'
 import type { Profile } from '@/lib/profile'
-import { BlotBubble } from '@/components/desktop/blot-bubble'
+import { Walkers } from '@/components/desktop/walkers'
 import { FolderIcon, DocIcon, PencilIcon } from '@/components/desktop/icons'
 import {
   lift,
@@ -18,7 +18,6 @@ import {
 } from '@/components/desktop/styles'
 import { DesktopSurface, DesktopItem } from '@/components/desktop/desktop-surface'
 import { DesktopAdder } from '@/components/desktop/desktop-adder'
-import { ProfileWindow } from '@/components/desktop/profile-window'
 import {
   CalendarProvider,
   CalendarButton,
@@ -229,12 +228,6 @@ export function Desktop({
             )
           })}
 
-          {!hidden('tile:blot') && (
-            <DesktopItem {...at('tile:blot', 16, 12)} rotate={-5} width="4.6rem">
-              <BlotBubble />
-            </DesktopItem>
-          )}
-
           {/* 손그림 달력 — 글 쓴 날을 누르면 그날 글이 나옵니다. */}
           {!hidden('file:calendar') && (
             <DesktopItem {...at('file:calendar', 84, 68)} rotate={-2} width="6.5rem">
@@ -290,7 +283,7 @@ export function Desktop({
         </div>
 
         {/* 바탕화면을 왔다 갔다 하는 졸라맨. 누르면 소개가 열립니다. */}
-        <ProfileWindow profile={profile} hobbies={hobbies} isAdmin={isAdmin} />
+        <Walkers profile={profile} hobbies={hobbies} isAdmin={isAdmin} />
 
         {isAdmin && (
           <>

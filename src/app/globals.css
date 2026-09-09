@@ -495,13 +495,15 @@ a.doodle-cell:hover {
 
 .stroll {
   /* 화면 폭에서 자기 몸집만큼 뺀 거리를 오갑니다. 가로 스크롤이 생기지 않게. */
-  --stroll-span: calc(100vw - 9rem);
+  --stroll-span: calc(100vw - 13rem);
   animation: stroll 42s linear infinite;
 }
 
-/* 가리키면 멈춥니다. 몸의 방향 전환도 같이 멈춰야 어색하지 않습니다. */
+/* 가리키거나 말풍선을 열어 두면 멈춥니다. 방향 전환도 같이 멈춰야 어색하지 않습니다. */
 .stroll:hover,
-.stroll:hover .stroll-face {
+.stroll:hover .stroll-face,
+.stroll:has([data-open]) ,
+.stroll:has([data-open]) .stroll-face {
   animation-play-state: paused;
 }
 

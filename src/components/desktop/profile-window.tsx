@@ -11,7 +11,7 @@ import { NowPlaying } from '@/components/now-playing'
   바탕화면의 얼굴 타일. 누르면 소개가 창처럼 열립니다.
   (글 목록 옆에 있던 소개 칸이 이 창으로 옮겨 왔습니다.)
 */
-export function ProfileWindow({
+export function ProfileFigure({
   profile,
   hobbies,
   isAdmin,
@@ -136,24 +136,17 @@ export function ProfileWindow({
 
   return (
     <>
-      {/*
-        바탕화면 아래쪽을 왔다 갔다 하는 졸라맨. 누르면 소개가 열립니다.
-        가리키면 멈추므로(globals.css의 .stroll:hover) 걸어가는 중에도 누르기 쉽습니다.
-      */}
-      <div className="stroll absolute bottom-3 left-4 z-10 lg:bottom-10 lg:left-8">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Who Am I — 소개 보기"
-          className="relative block w-11 cursor-pointer lg:w-14"
-        >
-          <Mood />
-          {/* 몸만 방향을 바꿉니다(globals.css의 .stroll-face). */}
-          <span className="stroll-face block">
-            <StickFigure />
-          </span>
-        </button>
-      </div>
+      {/* 졸라맨. 누르면 소개가 열립니다. 걷는 것은 walkers.tsx 가 맡습니다. */}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Who Am I — 소개 보기"
+        className="relative block w-10 cursor-pointer lg:w-12"
+        data-open={open ? 'true' : undefined}
+      >
+        <Mood />
+        <StickFigure />
+      </button>
 
       {/* 걸어 다니는 사람 안에서는 fixed가 화면 기준이 아닐 수 있어 body로 빼서 그립니다. */}
       {open && createPortal(window_, document.body)}
@@ -179,7 +172,7 @@ function Mood() {
       // key가 바뀌면 다시 그려지면서 뿅 하고 떠오르는 움직임이 다시 재생됩니다.
       key={at}
       aria-hidden
-      className="mood-pop pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 text-lg leading-none"
+      className="stroll-face mood-pop pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 text-lg leading-none"
     >
       {MOODS[at]}
     </span>
