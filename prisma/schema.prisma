@@ -77,7 +77,7 @@ model Post {
   content     String // Tiptap이 만든 HTML
   excerpt     String? // 목록에 보여줄 짧은 소개 (직접 작성)
   coverImage  String?
-  category    String? // "daily" | "study" | "dev" — 목록은 src/lib/categories.ts 에서 관리
+  category    String? // Folder.slug — 폴더 목록은 Folder 표에 있습니다
   published   Boolean   @default(false)
   publishedAt DateTime?
   viewCount   Int       @default(0)
@@ -175,9 +175,14 @@ model DesktopSpot {
   updatedAt DateTime @updatedAt
 }
 
-// 바탕화면 꾸미기 (폴더 색 등). 한 줄만 있는 표입니다.
-model DesktopSetting {
-  id          String   @id @default("singleton")
-  folderColor String   @default("blue") // src/lib/folder-colors.ts 의 이름
-  updatedAt   DateTime @updatedAt
+// 바탕화면의 폴더 = 글 분류.
+// 주인이 새로 만들 수 있고, 폴더마다 색을 따로 고릅니다.
+// Post.category 에 이 slug 가 들어갑니다.
+model Folder {
+  slug      String   @id // 주소에 쓰입니다: /category/일상
+  label     String
+  tagline   String   @default("") // 폴더 화면 맨 위 한 줄 설명
+  color     String   @default("blue") // src/lib/folder-colors.ts 의 이름
+  sort      Int      @default(0) // 바탕화면·차림표에 놓이는 순서
+  createdAt DateTime @default(now())
 }

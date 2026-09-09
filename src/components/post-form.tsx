@@ -4,11 +4,13 @@ import { useRef, useState, useTransition } from 'react'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { Editor } from '@/components/editor'
 import { savePost } from '@/lib/actions/post'
-import { CATEGORIES, DEFAULT_CATEGORY } from '@/lib/categories'
+import type { Folder } from '@/lib/categories'
 
 export function PostForm({
   post,
+  folders,
 }: {
+  folders: Folder[]
   post?: {
     id: string
     title: string
@@ -18,7 +20,7 @@ export function PostForm({
   }
 }) {
   const [title, setTitle] = useState(post?.title ?? '')
-  const [category, setCategory] = useState<string>(post?.category ?? DEFAULT_CATEGORY)
+  const [category, setCategory] = useState<string>(post?.category ?? folders[0]?.slug ?? '')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const editorRef = useRef<TiptapEditor | null>(null)
@@ -37,7 +39,7 @@ export function PostForm({
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">
-        {CATEGORIES.map((c) => (
+        {folders.map((c) => (
           <button
             key={c.slug}
             type="button"

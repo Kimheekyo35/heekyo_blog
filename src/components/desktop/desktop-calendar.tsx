@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import { createContext, useContext, useEffect, useState } from 'react'
-import { CATEGORIES, isCategorySlug } from '@/lib/categories'
+import type { Folder } from '@/lib/categories'
 import { labelFile } from '@/components/desktop/styles'
 
 /*
@@ -20,15 +20,18 @@ export type CalendarPost = {
   category: string | null
 }
 
-/** 하루치 글을 폴더(카테고리)별로 나눕니다. 순서는 카테고리 목록을 따르고, 없는 폴더는 건너뜁니다. */
-function groupByFolder(posts: CalendarPost[]) {
-  const groups: { label: string; posts: CalendarPost[] }[] = CATEGORIES.map((category) => ({
-    label: category.label as string,
-    posts: posts.filter((post) => post.category === category.slug),
-  })).filter((group) => group.posts.length > 0)
+/** 하루치 글을 폴더별로 나눕니다. 순서는 폴더 목록을 따르고, 글이 없는 폴더는 건너뜁니다. */
+function groupByFolder(posts: CalendarPost[], folders: Folder[]) {
+  const groups: { label: string; posts: CalendarPost[] }[] = folders
+    .map((folder) => ({
+      label: folder.label,
+      posts: posts.filter((post) => post.category === folder.slug),
+    }))
+    .filter((group) => group.posts.length > 0)
 
-  // 어느 폴더에도 없는 글(옛 카테고리 등)은 맨 끝에 따로 둡니다.
-  const rest = posts.filter((post) => !isCategorySlug(post.category))
+  // 어느 폴더에도 없는 글(지운 폴더의 글 등)은 맨 끝에 따로 둡니다.
+  const known = new Set(folders.map((folder) => folder.slug))
+  const rest = posts.filter((post) => !post.category || !known.has(post.category))
   if (rest.length > 0) groups.push({ label: '기타', posts: rest })
 
   return groups
@@ -55,10 +58,12 @@ const OpenCalendar = createContext<(() => void) | null>(null)
 export function CalendarProvider({
   today,
   posts,
+  folders,
   children,
 }: {
   today: string
   posts: CalendarPost[]
+  folders: Folder[]
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
@@ -96,7 +101,7 @@ export function CalendarProvider({
     else byDay.set(post.date, [post])
   }
 
-  const pickedGroups = groupByFolder(picked ? (byDay.get(picked) ?? []) : [])
+  const pickedGroups = groupByFolder(picked ? (byDay.get(picked) ?? []) : [], folders)
 
   const sheet = (
     <div

@@ -1,10 +1,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { CATEGORIES } from '@/lib/categories'
+import type { Folder } from '@/lib/categories'
 import { firstImage } from '@/lib/posts'
-import type { DesktopItemRow, Spots } from '@/lib/desktop'
-import type { FolderColorName } from '@/lib/folder-colors'
+import { EXTRA_SLOTS, type DesktopItemRow, type Spots } from '@/lib/desktop'
 import { removeDesktopItem, hideDesktopIcon } from '@/lib/actions/desktop'
+import { removeFolder } from '@/lib/actions/folder'
+import { FolderColorPicker } from '@/components/desktop/folder-color-picker'
 import type { PostListItem } from '@/components/post-list'
 import type { Profile } from '@/lib/profile'
 import { BlotIcon } from '@/components/blot-icon'
@@ -36,11 +37,12 @@ import {
   그것이 DesktopSpot에 저장되고, 다음부터는 저장된 쪽이 이깁니다.
 */
 
-function CategoryFolder({ slug, label }: { slug: string; label: string }) {
+function CategoryFolder({ folder }: { folder: Folder }) {
   return (
-    <Link href={`/category/${slug}`} className={lift} draggable={false}>
-      <FolderIcon className={`w-full ${shadow}`} />
-      <span className={`${labelClass} text-[13px]`}>{label}</span>
+    <Link href={`/category/${folder.slug}`} className={lift} draggable={false}>
+      {/* folder-<색> 이 이 아이콘 안에서만 폴더 색을 바꿉니다 (globals.css). */}
+      <FolderIcon className={`w-full folder-${folder.color} ${shadow}`} />
+      <span className={`${labelClass} text-[13px]`}>{folder.label}</span>
     </Link>
   )
 }
@@ -168,10 +170,10 @@ export function Desktop({
   profile,
   hobbies,
   showProfile,
+  folders,
   isAdmin,
   items,
   spots,
-  folderColor,
   today,
   calendarPosts,
 }: {
@@ -179,10 +181,10 @@ export function Desktop({
   profile: Profile
   hobbies: string[]
   showProfile: boolean
+  folders: Folder[]
   isAdmin: boolean
   items: DesktopItemRow[]
   spots: Spots
-  folderColor: FolderColorName
   today: string
   calendarPosts: CalendarPost[]
 }) {
@@ -201,7 +203,7 @@ export function Desktop({
   const files = posts.filter((post) => !hidden(`post:${post.slug}`)).slice(0, 4)
 
   return (
-    <CalendarProvider today={today} posts={calendarPosts}>
+    <CalendarProvider today={today} posts={calendarPosts} folders={folders}>
       <DesktopSurface
         editable={isAdmin}
         className="desktop relative w-full px-5 pt-6 pb-10 lg:px-10 lg:py-0"
@@ -234,14 +236,22 @@ export function Desktop({
 
         {/* 흩어진 아이콘들 — 좁은 화면에서는 여기서부터 아래로 쌓입니다. */}
         <div className="desktop-scatter">
-          {CATEGORIES.map((category, i) => {
-            const key = `folder:${category.slug}`
+          {folders.map((folder, i) => {
+            const key = `folder:${folder.slug}`
             if (hidden(key)) return null
-            const spread = FOLDER_SPREAD[i] ?? { x: 50, y: 50, rotate: 0 }
+            // 폴더가 셋보다 많아지면 빈자리 목록에서 이어서 자리를 줍니다.
+            const spread =
+              FOLDER_SPREAD[i] ?? EXTRA_SLOTS[(i - FOLDER_SPREAD.length) % EXTRA_SLOTS.length]
 
             return (
-              <DesktopItem key={key} {...at(key, spread.x, spread.y)} rotate={spread.rotate}>
-                <CategoryFolder {...category} />
+              <DesktopItem
+                key={key}
+                {...at(key, spread.x, spread.y)}
+                rotate={spread.rotate}
+                remove={removeFolder.bind(null, folder.slug)}
+                extra={<FolderColorPicker slug={folder.slug} color={folder.color} />}
+              >
+                <CategoryFolder folder={folder} />
               </DesktopItem>
             )
           })}
@@ -323,7 +333,7 @@ export function Desktop({
             <p className="pointer-events-none absolute bottom-7 left-10 z-10 hidden text-xs text-muted lg:block">
               아이콘을 끌어서 옮기고, × 를 눌러 치울 수 있어요
             </p>
-            <DesktopAdder folderColor={folderColor} />
+            <DesktopAdder />
           </>
         )}
       </DesktopSurface>

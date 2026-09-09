@@ -49,15 +49,3 @@ export const DEFAULT_FOLDER_COLOR: FolderColorName = 'blue'
 export function isFolderColor(value: unknown): value is FolderColorName {
   return typeof value === 'string' && value in FOLDER_COLORS
 }
-
-/**
- * 고른 색을 CSS로 바꿔 줍니다. 화면 맨 바깥(<html>)에 넣어서 헤더의 작은 폴더까지
- * 같은 색이 되게 합니다. globals.css의 기본값보다 나중에 나와야 이깁니다.
- */
-export function folderColorCss(name: FolderColorName) {
-  const { light, dark } = FOLDER_COLORS[name]
-  const vars = (shade: Shade) =>
-    `--folder:${shade.folder};--folder-back:${shade.back};--folder-edge:${shade.edge};`
-
-  return `:root{${vars(light)}}@media (prefers-color-scheme:dark){:root{${vars(dark)}}}`
-}

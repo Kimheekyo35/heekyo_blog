@@ -11,8 +11,6 @@ import {
 import './globals.css'
 import { SiteHeader } from '@/components/site-header'
 import { BlotIcon } from '@/components/blot-icon'
-import { getFolderColor } from '@/lib/desktop'
-import { folderColorCss } from '@/lib/folder-colors'
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
@@ -76,18 +74,13 @@ export const metadata: Metadata = {
   description: '일상과 만드는 이야기를 기록합니다.',
 }
 
-export default async function RootLayout({ children }: LayoutProps<'/'>) {
-  // 고른 폴더 색은 머리말의 작은 폴더에도 쓰이므로 여기서 한 번에 깔아 줍니다.
-  const folderColor = await getFolderColor()
-
+export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="ko"
       className={`${geistMono.variable} ${gaegu.variable} ${archivo.variable} ${instrumentSerif.variable} ${postFonts} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* globals.css의 기본 폴더 색을 덮어씁니다(문서에서 더 뒤에 나오므로 이깁니다). */}
-        <style dangerouslySetInnerHTML={{ __html: folderColorCss(folderColor) }} />
         <SiteHeader />
         <main className="flex-1 w-full">{children}</main>
         <footer className="border-t border-border mt-8">

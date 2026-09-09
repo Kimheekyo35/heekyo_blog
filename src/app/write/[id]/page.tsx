@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { PostForm } from '@/components/post-form'
+import { findFolders } from '@/lib/categories'
 import { DeletePostButton } from '@/components/delete-post-button'
 import { Container } from '@/components/container'
 
@@ -18,9 +19,11 @@ export default async function EditPostPage({ params }: PageProps<'/write/[id]'>)
   })
   if (!post) notFound()
 
+  const folders = await findFolders()
+
   return (
     <Container className="space-y-8">
-      <PostForm post={post} />
+      <PostForm post={post} folders={folders} />
       <div className="pt-6 border-t border-border flex justify-end">
         <DeletePostButton id={post.id} title={post.title} />
       </div>

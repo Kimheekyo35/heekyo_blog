@@ -1,5 +1,4 @@
 import { db } from '@/lib/db'
-import { DEFAULT_FOLDER_COLOR, isFolderColor, type FolderColorName } from '@/lib/folder-colors'
 
 /*
   바탕화면에 주인이 올린 사진·파일이 놓이는 자리.
@@ -70,14 +69,3 @@ export async function findDesktopSpots(): Promise<Spots> {
     rows.map((row) => [row.key, { x: row.x, y: row.y, hidden: row.hidden }])
   )
 }
-
-/** 지금 고른 폴더 색. 한 번도 안 골랐으면 기본 파랑. */
-export async function getFolderColor(): Promise<FolderColorName> {
-  const row = await db.desktopSetting.findUnique({
-    where: { id: SETTING_ID },
-    select: { folderColor: true },
-  })
-  return isFolderColor(row?.folderColor) ? row.folderColor : DEFAULT_FOLDER_COLOR
-}
-
-export const SETTING_ID = 'singleton'

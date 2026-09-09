@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
-import { categoryLabel, findCategory } from '@/lib/categories'
+import { findFolder } from '@/lib/categories'
 import { LikeButton } from '@/components/like-button'
 import { LoginButton } from '@/components/login-button'
 import { CommentSection } from '@/components/comment-section'
@@ -45,23 +45,23 @@ export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
   if (!post || (!post.published && !isAdmin)) notFound()
 
   const likedByMe = Array.isArray(post.likes) && post.likes.length > 0
-  const category = findCategory(post.category)
+  const folder = await findFolder(post.category)
 
   return (
     <Container>
       <article className="max-w-2xl mx-auto">
         <header className="mb-10">
           <div className="flex items-center gap-2 mb-4">
-            {category ? (
+            {folder ? (
               <Link
-                href={`/category/${category.slug}`}
+                href={`/category/${folder.slug}`}
                 className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent-soft text-accent hover:opacity-80"
               >
-                {category.label}
+                {folder.label}
               </Link>
             ) : (
               <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent-soft text-accent">
-                {categoryLabel(post.category)}
+                기타
               </span>
             )}
             {!post.published && (

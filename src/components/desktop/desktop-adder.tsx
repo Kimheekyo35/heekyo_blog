@@ -1,22 +1,19 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import {
-  addDesktopItem,
-  resetDesktopSpots,
-  showAllDesktopIcons,
-  setFolderColor,
-} from '@/lib/actions/desktop'
-import { FOLDER_COLORS, type FolderColorName } from '@/lib/folder-colors'
+import { addDesktopItem, resetDesktopSpots, showAllDesktopIcons } from '@/lib/actions/desktop'
+import { addFolder } from '@/lib/actions/folder'
+import { DEFAULT_FOLDER_COLOR, FOLDER_COLORS, type FolderColorName } from '@/lib/folder-colors'
 import { uploadImage } from '@/lib/upload-client'
 
 /**
- * 바탕화면에 사진이나 파일을 올리는 버튼. 블로그 주인에게만 보입니다.
- * 새로 올린 것은 빈자리에 놓이고, 그다음부터는 끌어서 원하는 곳에 두면 됩니다.
+ * 바탕화면에 폴더나 사진을 올리는 버튼. 블로그 주인에게만 보입니다.
+ * 새로 만든 것은 빈자리에 놓이고, 그다음부터는 끌어서 원하는 곳에 두면 됩니다.
  */
-export function DesktopAdder({ folderColor }: { folderColor: FolderColorName }) {
+export function DesktopAdder() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
+  const [color, setColor] = useState<FolderColorName>(DEFAULT_FOLDER_COLOR)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -34,6 +31,18 @@ export function DesktopAdder({ folderColor }: { folderColor: FolderColorName }) 
     setOpen(false)
   }
 
+  /** 글을 담는 폴더를 새로 만듭니다. 개발기록·일상 같은 그 폴더입니다. */
+  function onAddFolder() {
+    if (!name.trim()) {
+      setError('폴더 이름을 적어 주세요.')
+      return
+    }
+    startTransition(async () => {
+      done(await addFolder({ label: name, color }))
+    })
+  }
+
+  /** 바탕화면에 붙여 두는 사진. 글과는 상관없는 장식입니다. */
   async function onPickImage(file: File) {
     setError('')
     setBusy(true)
@@ -54,23 +63,13 @@ export function DesktopAdder({ folderColor }: { folderColor: FolderColorName }) 
     }
   }
 
-  function onAddNote() {
-    if (!name.trim()) {
-      setError('파일 이름을 적어 주세요.')
-      return
-    }
-    startTransition(async () => {
-      done(await addDesktopItem({ kind: 'note', label: name }))
-    })
-  }
-
   return (
     <div className="fixed bottom-5 right-5 z-40 lg:absolute lg:bottom-6 lg:right-8">
       {open && (
         <div className="mb-3 w-64 rounded-2xl border border-border bg-surface p-4 shadow-xl shadow-black/10">
-          <p className="mb-1 text-sm font-semibold">바탕화면에 올리기</p>
+          <p className="mb-1 text-sm font-semibold">바탕화면에 만들기</p>
           <p className="mb-3 text-xs leading-relaxed text-muted">
-            올린 다음 아이콘을 끌어서 원하는 자리에 놓으세요. 폴더와 글도 같이 옮길 수 있습니다.
+            만든 다음 아이콘을 끌어서 원하는 자리에 놓으세요.
           </p>
 
           <input
@@ -87,52 +86,49 @@ export function DesktopAdder({ folderColor }: { folderColor: FolderColorName }) 
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="이름 (선택)"
-            maxLength={30}
+            placeholder="폴더 이름 (예: 여행)"
+            maxLength={20}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
           />
 
-          <div className="mt-2.5 flex gap-2">
-            <button
-              type="button"
-              disabled={working}
-              onClick={() => fileInput.current?.click()}
-              className="flex-1 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              {working ? '올리는 중…' : '사진 추가'}
-            </button>
-            <button
-              type="button"
-              disabled={working}
-              onClick={onAddNote}
-              className="rounded-lg border border-border px-3 py-2 text-sm transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
-            >
-              파일 추가
-            </button>
+          {/* 새로 만들 폴더의 색. 이미 있는 폴더는 아이콘 옆 동그라미로 바꿉니다. */}
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {(Object.keys(FOLDER_COLORS) as FolderColorName[]).map((name) => (
+              <button
+                key={name}
+                type="button"
+                disabled={working}
+                title={FOLDER_COLORS[name].label}
+                aria-label={`폴더 색 ${FOLDER_COLORS[name].label}`}
+                aria-pressed={color === name}
+                onClick={() => setColor(name)}
+                style={{ background: FOLDER_COLORS[name].light.folder }}
+                className={`h-6 w-6 rounded-md ring-offset-2 ring-offset-surface transition-shadow disabled:opacity-50 ${
+                  color === name ? 'ring-2 ring-foreground' : 'ring-1 ring-black/10'
+                }`}
+              />
+            ))}
           </div>
+
+          <button
+            type="button"
+            disabled={working}
+            onClick={onAddFolder}
+            className="mt-3 w-full rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            폴더 만들기
+          </button>
+
+          <button
+            type="button"
+            disabled={working}
+            onClick={() => fileInput.current?.click()}
+            className="mt-2 w-full rounded-lg border border-border px-3 py-2 text-sm transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+          >
+            {working ? '올리는 중…' : '사진 붙이기'}
+          </button>
 
           {error && <p className="mt-2.5 text-xs text-red-600">{error}</p>}
-
-          <div className="mt-4 border-t border-border pt-3">
-            <p className="mb-2 text-xs font-semibold text-muted">폴더 색</p>
-            <div className="flex flex-wrap gap-1.5">
-              {(Object.keys(FOLDER_COLORS) as FolderColorName[]).map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  disabled={working}
-                  title={FOLDER_COLORS[color].label}
-                  aria-label={`폴더 색 ${FOLDER_COLORS[color].label}`}
-                  aria-pressed={folderColor === color}
-                  onClick={() => startTransition(async () => void (await setFolderColor(color)))}
-                  style={{ background: FOLDER_COLORS[color].light.folder }}
-                  className={`h-7 w-7 rounded-lg ring-offset-2 ring-offset-surface transition-shadow disabled:opacity-50 ${
-                    folderColor === color ? 'ring-2 ring-foreground' : 'ring-1 ring-black/10'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
 
           <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-xs text-muted">
             <button
@@ -166,7 +162,7 @@ export function DesktopAdder({ folderColor }: { folderColor: FolderColorName }) 
         <span aria-hidden className="text-base leading-none">
           {open ? '×' : '+'}
         </span>
-        {open ? '닫기' : '사진·파일 추가'}
+        {open ? '닫기' : '폴더·사진 만들기'}
       </button>
     </div>
   )

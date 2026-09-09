@@ -1,37 +1,54 @@
-// 카테고리를 늘리고 싶으면 이 배열에만 추가하면 됩니다. DB 수정은 필요 없습니다.
-// 홈 화면의 폴더도 이 순서 그대로 놓입니다.
-export const CATEGORIES = [
-  {
-    slug: 'daily',
-    label: '일상',
-    tagline: '지나가는 하루를 붙잡아 두는 곳',
-  },
-  {
-    slug: 'study',
-    label: '공부',
-    tagline: '배운 것을 잊어버리기 전에',
-  },
-  {
-    slug: 'dev',
-    label: '개발기록',
-    tagline: '만드는 과정을 처음부터 끝까지',
-  },
-] as const
+import { db } from '@/lib/db'
+import { DEFAULT_FOLDER_COLOR, isFolderColor, type FolderColorName } from '@/lib/folder-colors'
 
-export type Category = (typeof CATEGORIES)[number]
-export type CategorySlug = Category['slug']
+/*
+  폴더 = 글 분류. 예전에는 이 파일에 목록을 적어 두었지만, 이제 주인이 바탕화면에서
+  직접 만들 수 있어서 DB(Folder 표)에 있습니다. 글은 Post.category 에 폴더의 slug 를 담습니다.
+*/
 
-export const DEFAULT_CATEGORY: CategorySlug = 'daily'
-
-export function findCategory(slug: string | null | undefined): Category | undefined {
-  if (!slug) return undefined
-  return CATEGORIES.find((c) => c.slug === slug)
+export type Folder = {
+  slug: string
+  label: string
+  tagline: string
+  color: FolderColorName
 }
 
-export function categoryLabel(slug: string | null | undefined) {
-  return findCategory(slug)?.label ?? '기타'
+const folderSelect = { slug: true, label: true, tagline: true, color: true } as const
+
+function toFolder(row: { slug: string; label: string; tagline: string; color: string }): Folder {
+  return {
+    slug: row.slug,
+    label: row.label,
+    tagline: row.tagline,
+    // 색 이름이 지워졌거나 이상하면 기본색으로 그립니다.
+    color: isFolderColor(row.color) ? row.color : DEFAULT_FOLDER_COLOR,
+  }
 }
 
-export function isCategorySlug(value: unknown): value is CategorySlug {
-  return typeof value === 'string' && CATEGORIES.some((c) => c.slug === value)
+/** 만든 순서(sort)대로 폴더 전부. 바탕화면과 글쓰기 화면이 같은 순서를 씁니다. */
+export async function findFolders(): Promise<Folder[]> {
+  const rows = await db.folder.findMany({
+    orderBy: [{ sort: 'asc' }, { createdAt: 'asc' }],
+    select: folderSelect,
+  })
+  return rows.map(toFolder)
+}
+
+export async function findFolder(slug: string | null | undefined): Promise<Folder | null> {
+  if (!slug) return null
+  const row = await db.folder.findUnique({ where: { slug }, select: folderSelect })
+  return row ? toFolder(row) : null
+}
+
+/** 글을 저장할 때 쓰는 확인. 모르는 폴더면 첫 폴더에 넣습니다. */
+export async function resolveFolderSlug(value: unknown): Promise<string | null> {
+  if (typeof value === 'string' && (await findFolder(value))) return value
+  const [first] = await findFolders()
+  return first?.slug ?? null
+}
+
+/** 글 목록처럼 여러 글의 폴더 이름이 한꺼번에 필요할 때. */
+export async function folderLabels(): Promise<Record<string, string>> {
+  const folders = await findFolders()
+  return Object.fromEntries(folders.map((folder) => [folder.slug, folder.label]))
 }

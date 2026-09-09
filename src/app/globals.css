@@ -415,3 +415,68 @@ a.doodle-cell:hover {
   font-size: 0.875rem;
   line-height: 1.6;
 }
+
+/* 폴더마다 고른 색. 아이콘에 folder-<이름> 을 붙이면 그 폴더만 색이 바뀝니다. */
+.folder-blue {
+  --folder: #7fadd8;
+  --folder-back: #9cc3e6;
+  --folder-edge: #6a9ac9;
+}
+.folder-green {
+  --folder: #8bc0a0;
+  --folder-back: #a7d4b8;
+  --folder-edge: #71a98a;
+}
+.folder-butter {
+  --folder: #e7c56b;
+  --folder-back: #f0d78e;
+  --folder-edge: #cfa94c;
+}
+.folder-peach {
+  --folder: #eda98c;
+  --folder-back: #f5c1a9;
+  --folder-edge: #d68a6c;
+}
+.folder-lilac {
+  --folder: #b3a3dd;
+  --folder-back: #c8bbe8;
+  --folder-edge: #9686c6;
+}
+.folder-ash {
+  --folder: #adaba4;
+  --folder-back: #c4c2bb;
+  --folder-edge: #93918a;
+}
+
+@media (prefers-color-scheme: dark) {
+  .folder-blue {
+    --folder: #5c88b5;
+    --folder-back: #6f9cc7;
+    --folder-edge: #48719c;
+  }
+  .folder-green {
+    --folder: #5d9179;
+    --folder-back: #6fa78c;
+    --folder-edge: #4a7a63;
+  }
+  .folder-butter {
+    --folder: #b3944a;
+    --folder-back: #c4a75e;
+    --folder-edge: #977a37;
+  }
+  .folder-peach {
+    --folder: #b87c62;
+    --folder-back: #c99175;
+    --folder-edge: #9a6349;
+  }
+  .folder-lilac {
+    --folder: #8577ad;
+    --folder-back: #9789bf;
+    --folder-edge: #6c5f92;
+  }
+  .folder-ash {
+    --folder: #7c7a74;
+    --folder-back: #8e8c85;
+    --folder-edge: #65635e;
+  }
+}

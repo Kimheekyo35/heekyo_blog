@@ -7,7 +7,7 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { slugify } from '@/lib/slug'
 import { ensureSummary } from '@/lib/blot'
-import { DEFAULT_CATEGORY, isCategorySlug } from '@/lib/categories'
+import { resolveFolderSlug } from '@/lib/categories'
 
 // 화면에서 버튼을 숨기는 것만으로는 막을 수 없습니다. 실제 차단은 여기서 합니다.
 async function requireAdmin() {
@@ -45,8 +45,8 @@ export async function savePost(input: {
   const textOnly = input.content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
   if (!textOnly) return { error: '내용을 입력해 주세요.' }
 
-  // 화면에서 보낸 값을 그대로 믿지 않고 아는 카테고리인지 확인합니다.
-  const category = isCategorySlug(input.category) ? input.category : DEFAULT_CATEGORY
+  // 화면에서 보낸 값을 그대로 믿지 않고 있는 폴더인지 확인합니다.
+  const category = await resolveFolderSlug(input.category)
 
   const slug = await uniqueSlug(slugify(title), input.id)
 

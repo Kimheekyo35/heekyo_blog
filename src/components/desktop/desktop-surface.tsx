@@ -58,6 +58,7 @@ export function DesktopItem({
   rotate = 0,
   width = '7.5rem',
   remove,
+  extra,
   children,
 }: {
   /** 자리를 기억할 때 쓰는 이름. 예: "folder:daily", "item:abc123" */
@@ -70,6 +71,8 @@ export function DesktopItem({
   width?: string
   /** 이 아이콘을 바탕화면에서 치우는 방법. 주인에게만 × 단추로 보입니다. */
   remove?: () => Promise<void>
+  /** 아이콘 모서리에 같이 붙일 것(폴더 색 단추 등). 주인에게만 보입니다. */
+  extra?: React.ReactNode
   children: React.ReactNode
 }) {
   const surface = useContext(SurfaceContext)
@@ -164,6 +167,12 @@ export function DesktopItem({
       {/* × 단추를 아이콘 모서리에 붙이려면 감싸는 상자가 기준이 되어야 합니다. */}
       <div className="group/icon relative">
         {children}
+
+        {editable && extra && (
+          <div className="opacity-0 transition-opacity focus-within:opacity-100 group-hover/icon:opacity-100">
+            {extra}
+          </div>
+        )}
 
         {editable && remove && (
           <form

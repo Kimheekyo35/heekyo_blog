@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { categoryLabel } from '@/lib/categories'
+import { folderLabels } from '@/lib/categories'
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat('ko-KR', {
@@ -32,7 +32,9 @@ export type PostListItem = {
   _count: { comments: number; likes: number }
 }
 
-export function PostList({ posts }: { posts: PostListItem[] }) {
+export async function PostList({ posts }: { posts: PostListItem[] }) {
+  const labels = await folderLabels()
+
   return (
     <ul className="grid gap-5 sm:grid-cols-2">
       {posts.map((post) => (
@@ -43,7 +45,7 @@ export function PostList({ posts }: { posts: PostListItem[] }) {
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent-soft text-accent">
-                {categoryLabel(post.category)}
+                {(post.category && labels[post.category]) ?? '기타'}
               </span>
               {!post.published && (
                 <span className="text-xs px-2 py-1 rounded-full border border-border text-muted">

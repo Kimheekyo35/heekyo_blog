@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
-import { pickSlot, SETTING_ID } from '@/lib/desktop'
-import { isFolderColor } from '@/lib/folder-colors'
+import { pickSlot } from '@/lib/desktop'
 
 const LABEL_MAX = 30
 
@@ -116,20 +115,4 @@ export async function showAllDesktopIcons() {
 
   await db.desktopSpot.updateMany({ where: { hidden: true }, data: { hidden: false } })
   revalidatePath('/')
-}
-
-/** 폴더 색을 고릅니다. */
-export async function setFolderColor(name: string) {
-  const session = await auth()
-  if (session?.user?.role !== 'ADMIN') return
-  if (!isFolderColor(name)) return
-
-  await db.desktopSetting.upsert({
-    where: { id: SETTING_ID },
-    create: { id: SETTING_ID, folderColor: name },
-    update: { folderColor: name },
-  })
-
-  // 폴더 색은 머리말에도 쓰이므로 화면 전체를 새로 그립니다.
-  revalidatePath('/', 'layout')
 }
