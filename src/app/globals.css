@@ -31,6 +31,7 @@
   --color-accent-soft: var(--accent-soft);
   --font-mono: var(--font-geist-mono);
   --font-cute: var(--font-cute);
+  --font-round: var(--font-round);
   --font-display: var(--font-display);
   --font-script: var(--font-script);
 }

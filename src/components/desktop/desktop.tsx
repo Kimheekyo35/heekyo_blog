@@ -207,7 +207,7 @@ export function Desktop({
     <CalendarProvider today={today} posts={calendarPosts} folders={folders}>
       <DesktopSurface
         editable={isAdmin}
-        className="desktop relative w-full px-5 pt-6 pb-10 font-cute lg:px-10 lg:py-0"
+        className="desktop relative w-full px-5 pt-6 pb-10 font-round lg:px-10 lg:py-0"
       >
         {/* 제목은 맨 위 가운데. 큰 폴더가 글자 아랫부분을 살짝 덮습니다. 이건 치울 수 없습니다. */}
         <DesktopItem

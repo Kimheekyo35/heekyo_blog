@@ -4,6 +4,7 @@ import {
   Gaegu,
   Archivo,
   Instrument_Serif,
+  Gowun_Dodum,
   Nanum_Myeongjo,
   Gowun_Batang,
   Gothic_A1,
@@ -22,6 +23,13 @@ const geistMono = Geist_Mono({
 // 실제로 쓰는 몇 글자에 해당하는 조각만 내려받습니다.
 const gaegu = Gaegu({
   variable: '--font-cute',
+  weight: '400',
+  subsets: ['latin'],
+})
+
+// 바탕화면 글씨. 모서리가 부드러운 고딕체라 아이콘 이름표에 잘 어울립니다.
+const gowunDodum = Gowun_Dodum({
+  variable: '--font-round',
   weight: '400',
   subsets: ['latin'],
 })
@@ -78,7 +86,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="ko"
-      className={`${geistMono.variable} ${gaegu.variable} ${archivo.variable} ${instrumentSerif.variable} ${postFonts} h-full antialiased`}
+      className={`${geistMono.variable} ${gaegu.variable} ${gowunDodum.variable} ${archivo.variable} ${instrumentSerif.variable} ${postFonts} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <SiteHeader />
