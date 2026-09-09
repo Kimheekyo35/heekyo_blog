@@ -55,18 +55,15 @@ export function BlotBubble() {
             className="absolute -top-[9px] left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 rounded-[3px] border-l border-t border-border bg-surface"
           />
 
-          <p className="flex items-center gap-1.5">
-            <BlotIcon className="w-4 text-accent" />
+          <p className="flex items-baseline gap-1.5">
+            <BlotIcon className="w-4 shrink-0 translate-y-0.5 text-accent" />
             <span className="font-mono text-xs font-bold tracking-wide">blot</span>
-            <span className="font-cute text-[15px] leading-none text-muted">블로그 요약해드림</span>
+            {/* 이름의 유래는 한 톤 흐리게 — 이름보다 앞서 읽히지 않도록 */}
+            <span className="text-[13px] leading-none text-muted">(blog + bot)</span>
           </p>
 
-          <p className="mt-2 text-xs leading-relaxed text-muted">
-            긴 글을 대신 읽고 세 줄쯤으로 줄여 주는 로봇입니다. 요약은 글 맨 위에 붙어서, 읽기
-            전에 무슨 이야기인지 먼저 알 수 있어요.
-          </p>
-          <p className="mt-2 text-xs leading-relaxed text-muted">
-            글이 바뀌지 않았으면 다시 만들지 않고 저장해 둔 요약을 그대로 씁니다.
+          <p className="mt-2 text-[13px] leading-relaxed">
+            긴 글을 대신 읽고 요약해주는 봇입니다.
           </p>
         </div>
       )}
